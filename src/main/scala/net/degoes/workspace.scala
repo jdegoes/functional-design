@@ -12,7 +12,7 @@ object workspace {
   //
   // Daily Schedule:
   //
-  //    START : 
-  //    LUNCH : 
-  //    END   : 
+  //    START :
+  //    LUNCH :
+  //    END   :
 }

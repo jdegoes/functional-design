@@ -11,11 +11,20 @@ package net.degoes
  *
  * 3. Operators that allow transforming & combining domain elements.
  *
+ * Domains allow describing solutions to specific problems in an application.
+ * Done properly, a small set of constructors and composable operators can be
+ * so powerful, it can describe all possible solutions in that domain.
+ *
+ * A functional domain can be regarded as a type of internal domain-specific
+ * language (DSL), which is designed specifically for expressing compositional
+ * solutions to some category of domain problems.
+ *
  * ZIO is an example of a domain for input/output, whose effect type lets you
  * solve async/concurrent/resourceful problems, and whose operators let you
  * assemble large solutions from small solutions.
  *
- * In this section, you'll learn about designing domains.
+ * In this section, you'll learn about designing domains using ADTS,
+ * constructors, and composable operators.
  */
 
 /**
@@ -98,6 +107,12 @@ object spreadsheet {
     }
   }
 
+  /**
+   * EXERCISE 5
+   *
+   * Describe a cell whose contents are the sum of other cells.
+   */
+  lazy val cell1: Cell = ???
 }
 
 /**
@@ -139,46 +154,69 @@ object etl {
   }
 
   /**
-   * EXERCISE 3
+   * `Pipeline` is a data type that models a step in an ETL pipeline.
    *
-   * Design a data type that models a step in an ETL pipeline. A step could be
-   * one of the following:
-   *
-   * * Extracting data from a DataSource.
-   * * Renaming a column in a pipeline
-   * * Coercing a column into a specific type in a pipeline
-   * * Replacing nulls with a given value in a pipeline
-   * * Loading data into
+   * NOTE: This data type will purely *describe* steps in a pipeline. It will
+   * not actually perform these steps. Separately, you could implement a
+   * function to execute a pipeline by performing the steps it models, but
+   * this task is beyond the scope of these exercises.
    */
-  trait Pipeline {
+  sealed trait Pipeline {
 
-    /** EXERCISE 4
+    /**
+     * EXERCISE 4
      *
-     * Add an operator to rename a column in a pipeline.
+     * Add a `+` operator that models sequentially applying this pipeline, and
+     * then the specified pipeline.
      */
-    def rename(oldName: String, newName: String): Pipeline
+    def +(that: Pipeline): Pipeline = ???
 
     /**
      * EXERCISE 5
      *
-     * Add an operator to coerce a column into a specific type in a pipeline.
+     * Add an `orElse` operator that models applying this pipeline, but if it
+     * fails, switching over and trying another pipeline.
      */
-    def coerce(column: String, newType: DataType): Pipeline
+    def orElse(that: Pipeline): Pipeline = ???
+  }
+  object Pipeline {
 
-    /**
-     * EXERCISE 6
+    /** EXERCISE 6
      *
-     * Add an operator to delete a column in a pipeline.
+     * Add an operator to rename a column in a pipeline.
      */
-    def delete(column: String): Pipeline
+    def rename(oldName: String, newName: String): Pipeline = ???
 
     /**
      * EXERCISE 7
      *
+     * Add an operator to coerce a column into a specific type in a pipeline.
+     */
+    def coerce(column: String, newType: DataType): Pipeline = ???
+
+    /**
+     * EXERCISE 8
+     *
+     * Add an operator to delete a column in a pipeline.
+     */
+    def delete(column: String): Pipeline = ???
+
+    /**
+     * EXERCISE 9
+     *
      * To replace nulls in the specified column with a specified value.
      */
-    def replaceNulls(column: String, value: DataValue): Pipeline
+    def replaceNulls(column: String, value: DataValue): Pipeline = ???
   }
+
+  /**
+   * EXERCISE 10
+   *
+   * Create a pipeline that models replacing all null ages with "0" as the
+   * default age, and which renames a column "fname" into a column
+   * "first_name", and which coerces the "age" column into an integer type.
+   */
+  lazy val pipeline: Pipeline = ???
 }
 
 /**
@@ -198,7 +236,7 @@ object analytics {
    * For efficiency, the page should be stored inside an `Array[Double]`, but
    * not exposed outside the data type.
    */
-  trait ColumnarPage {
+  case class ColumnarPage() {
 
     /** EXERCISE 2
      *
@@ -242,7 +280,7 @@ object analytics {
      * Add an `extend(n: Int)` operation that extends the length of the page
      * to the specified number, by using "wraparound" semantics.
      */
-    def extend(n: Int): Int
+    def extend(n: Int): Int = ???
   }
   object ColumnarPage {
 
@@ -283,16 +321,18 @@ object pricing_fetcher {
    * EXERCISE 1
    *
    * Create a data type `Schedule` that models a schedule.
+   *
+   * NOTE: It is acceptable for this data type to purely describe a schedule.
+   * Separately, you could implement a function to execute a schedule, but
+   * this task is beyond the scope of these exercises.
    */
-  trait Schedule {
+  sealed trait Schedule {
     /*
      * EXERCISE 2
      *
      * Create an operator for schedule that allows composing two schedules to
      * yield the union of those schedules. That is, the fetch will occur
      * only when either of the schedules would have performed a fetch.
-     *
-     * NOTE: It is acceptable to only model the solution with a data constructor.
      */
     def union(that: Schedule): Schedule = ???
 
