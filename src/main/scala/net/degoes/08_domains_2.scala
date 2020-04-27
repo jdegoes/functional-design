@@ -331,3 +331,67 @@ object calendar {
   def findFreeTimes(lengthInHours: Int, friends: Map[Person, MonthlySchedule]): MonthlySchedule = ???
 
 }
+
+/**
+ * CMS - EXERCISE SET 3
+ *
+ * Consider a content-management system.
+ */
+object cms {
+
+  /**
+   * EXERCISE 1
+   *
+   * Add whatever transformations and combinations have well-defined semantics.
+   */
+  sealed trait Html { self =>
+    final def isEmpty: Boolean = self match {
+      case Html.Zero                => true
+      case Html.One(_, _, children) => false
+      case Html.Many(elements)      => elements.forall(_.isEmpty)
+    }
+
+    final def childList: List[Html] = self match {
+      case Html.Zero                => Nil
+      case Html.One(_, _, children) => children.childList
+      case Html.Many(elements)      => elements.flatMap(_.childList)
+    }
+  }
+  object Html {
+    case object Zero                                                                       extends Html
+    final case class One(tagName: String, attributes: Map[String, String], children: Html) extends Html
+    final case class Many(elements: List[Html])                                            extends Html
+  }
+
+  final case class User(email: String)
+
+  trait PageContext {
+    def url: java.net.URL
+  }
+  trait UserContext {
+    def user: User
+  }
+
+  /**
+   * EXERCISE 2
+   *
+   * Add whatever transformations and combinations have well-defined semantics.
+   *
+   */
+  sealed trait Component[-Context, -State] {
+    def render(context: Context, state: State): Html
+  }
+  object Component {
+    final case class Leaf[Context, State](render0: (Context, State) => Html) extends Component[Context, State] {
+      def render(context: Context, state: State): Html = render0(context, state)
+    }
+
+    def make[Context, State](render: (Context, State) => Html): Component[Context, State] = Leaf(render)
+
+    /**
+   * EXERCISE 3
+   *
+   * Add some example components.
+   */
+  }
+}
