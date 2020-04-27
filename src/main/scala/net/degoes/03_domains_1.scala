@@ -198,7 +198,7 @@ object etl {
      *
      * Add an operator to coerce a column into a specific type in a pipeline.
      */
-    def coerce(column: String, newType: DataType): Pipeline = Pipeline.Coerce(self, column, newType)
+    def coerce(column: String, newType: DataType): Pipeline = ???
 
     /**
      * EXERCISE 8
