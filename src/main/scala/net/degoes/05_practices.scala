@@ -25,8 +25,9 @@ package net.degoes
  * The best primitives are:
  *
  * * Composable, to permit a lot of power in a small, reasonable package
- * * Minimal, for the desired level of power
+ * * Expressive, to solve the full range of solutions
  * * Orthogonal, such that no primitive provides the capabilities of any other
+ *   (implies minimalism)
  *
  */
 
@@ -69,6 +70,8 @@ object email_filter3 {
     final case class RecipientIn(targets: Set[Address])                 extends EmailFilter
     final case class BodyContains(phrase: String)                       extends EmailFilter
     final case class BodyNotContains(phrase: String)                    extends EmailFilter
+    final case class SubjectContains(phrase: String)                    extends EmailFilter
+    final case class SubjectNotContains(phrase: String)                 extends EmailFilter
 
     val always: EmailFilter = Always
 
@@ -89,6 +92,10 @@ object email_filter3 {
     def bodyContains(phrase: String): EmailFilter = BodyContains(phrase)
 
     def bodyDoesNotContain(phrase: String): EmailFilter = BodyNotContains(phrase)
+
+    def subjectContains(phrase: String): EmailFilter = SubjectContains(phrase)
+
+    def subjectDoesNotContain(phrase: String): EmailFilter = SubjectNotContains(phrase)
   }
 }
 
