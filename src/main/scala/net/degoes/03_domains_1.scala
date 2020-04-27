@@ -225,7 +225,7 @@ object etl {
     def extract(repo: DataRepo): Pipeline = ???
   }
 
-  def run(pipeline: Pipeline, destination: DataRepo): Unit = ???
+  def execute(pipeline: Pipeline, destination: DataRepo): Unit = ???
 
   /**
    * EXERCISE 10

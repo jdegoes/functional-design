@@ -3,16 +3,19 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, there are two ways to encode a domain constructors and
+ * In Functional Design, there are two ways to encode domain constructors and
  * operators:
  *
- * 1. As processes, typically using a function or an interface with methods in
- *    it that perform actual work. This is sometimes called the "final" encoding.
- *    It's a direct, "executable" encoding of a domain.
+ * 1. As a function or interface, whose methods perform the solution. This is
+ *    sometimes called the "final" encoding. It's a direct, "executable" encoding
+ *    of a domain. If some domain is modeled with a class or case class, or an
+ *    open trait that is implemented by classes, then it's probably a final
+ *    encoding.
  *
- * 2. As a data structure, using sealed traits and case classes (ADTs). This is
- *    sometimes called the "initial" encoding in functional programming. It's an
- *    indirect, purely descriptive model of a domain.
+ * 2. As a pure data structure, which declaratively describes the solution, but
+ *    which does not perform the solution. It's an indirect, "declarative"
+ *    encoding of a domain. If some domain type is modeled with a sealed trait,
+ *    then it's probably an initial encoding.
  *
  * In the second encoding, a so-called "executor" or "interpreter" or "compiler"
  * translates the data structure, which describes a solution, into either
@@ -31,21 +34,9 @@ package net.degoes
  * knowledge of key concepts.
  */
 object education_final {
-  final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) { self =>
-    def totalPoints: Int = correctPoints + wrongPoints
+  import education._
 
-    def toBonus: QuizResult = copy(correctPoints = 0, bonusPoints = bonusPoints + correctPoints)
-
-    def +(that: QuizResult): QuizResult =
-      QuizResult(
-        self.correctPoints + that.correctPoints,
-        self.bonusPoints + that.bonusPoints,
-        self.wrongPoints + that.wrongPoints,
-        self.wrong ++ that.wrong
-      )
-  }
-
-  sealed trait Quiz {
+  sealed trait Quiz2 { self =>
 
     /**
      * EXERCISE 1
@@ -53,7 +44,7 @@ object education_final {
      * Add an operator `+` that appends this quiz to the specified quiz. Model
      * this as pure data using a constructor for Quiz in the companion object.
      */
-    def +(that: Quiz): Quiz = ???
+    def +(that: Quiz2): Quiz2 = ???
 
     /**
      * EXERCISE 3
@@ -61,19 +52,11 @@ object education_final {
      * Add a unary operator `bonus` that marks this quiz as a bonus quiz. Model
      * this as pure data using a constructor for Quiz in the companion object.
      */
-    def bonus: Quiz = ???
-
-    /**
-     * EXERCISE 4
-     *
-     * Add a conditional operator which, if the user gets this quiz right,
-     * will do the `ifPass` quiz afterward; but otherwise, do the `ifFail` quiz.
-     * Model this as pure data using a constructor for Quiz in the companion
-     * object.
-     */
-    def conditional(ifPass: Quiz, ifFail: Quiz): Quiz = ???
+    def bonus: Quiz2 = ???
   }
-  object Quiz {}
+  object Quiz2 {
+    def single[A](question: Question[A], grader: Grader[A]): Quiz2 = ???
+  }
 
   /**
    * EXERCISE 5
@@ -82,7 +65,7 @@ object education_final {
    * the interactive console operations that it describes, returning a
    * QuizResult value.
    */
-  def run(quiz: Quiz): QuizResult = ???
+  def run(quiz: Quiz2): QuizResult = ???
 }
 
 /**
@@ -91,7 +74,9 @@ object education_final {
  * Consider an email marketing platform, which allows users to upload contacts.
  */
 object contact_processing2 {
-  sealed trait SchemaMapping {
+  import contact_processing._
+
+  sealed trait SchemaMapping2 {
 
     /**
      * EXERCISE 1
@@ -99,7 +84,7 @@ object contact_processing2 {
      * Add a `+` operator that models combining two schema mappings into one,
      * applying the effects of both in sequential order.
      */
-    def +(that: SchemaMapping): SchemaMapping = ???
+    def +(that: SchemaMapping2): SchemaMapping2 = ???
 
     /**
      * EXERCISE 2
@@ -108,86 +93,42 @@ object contact_processing2 {
      * one, applying the effects of the first one, unless it fails, and in that
      * case, applying the effects of the second one.
      */
-    def orElse(that: SchemaMapping): SchemaMapping = ???
+    def orElse(that: SchemaMapping2): SchemaMapping2 = ???
+  }
+  object SchemaMapping2 {
 
     /**
      * EXERCISE 3
      *
-     * Add an `exclude` operator that models returning a schema that excludes
-     * excludes the specified column names from this schema mapping.
+     * Add a constructor for `SchemaMapping` models renaming the column name.
      */
-    def exclude(columnNames: Set[String]): SchemaMapping = ???
-  }
-  object SchemaMapping {
+    def rename(oldName: String, newName: String): SchemaMapping2 = ???
 
     /**
      * EXERCISE 4
      *
-     * Add a constructor for `SchemaMapping` models renaming the column name.
-     */
-    def rename(oldName: String, newName: String): SchemaMapping = ???
-
-    /**
-     * EXERCISE 5
-     *
-     * Add a constructor for `SchemaMapping` that models moving the index of
-     * the ith column to the jth position.
-     */
-    def relocate(i: Int, j: Int): SchemaMapping = ???
-
-    /**
-     * EXERCISE 6
-     *
      * Add a constructor for `SchemaMapping` that models deleting the column
      * of the specified name.
      */
-    def delete(name: String): SchemaMapping = ???
-  }
-
-  final case class SchemaCSV(columnNames: List[String])
-
-  final case class ContactsCSV(schema: SchemaCSV, content: Vector[Vector[String]]) {
-    def columnNames: List[String] = schema.columnNames
-
-    def columnOf(name: String): Option[Int] = {
-      val index = columnNames.indexOf(name)
-
-      if (index >= 0) Some(index) else None
-    }
-
-    def get(row: Int, columnName: String): Option[String] =
-      for {
-        col   <- columnOf(columnName)
-        row   <- content.lift(row)
-        value <- row.lift(col)
-      } yield value
-
-  }
-
-  val OurSchema: SchemaCSV =
-    SchemaCSV(List("first_name", "last_name", "email_address", "country", "street_address", "postal_code"))
-
-  sealed trait MappingResult[+A]
-  object MappingResult {
-    final case class Success[+A](warnings: List[String], value: A) extends MappingResult[A]
-    final case class Failure(errors: List[String])                 extends MappingResult[Nothing]
+    def delete(name: String): SchemaMapping2 = ???
   }
 
   /**
-   * EXERCISE 7
+   * EXERCISE 5
    *
    * Implement an interpreter for the `SchemaMapping` model that translates it into
    * into changes on the contact list.
    */
-  def run(mapping: SchemaMapping, contacts: ContactsCSV): MappingResult[ContactsCSV] = ???
+  def run(mapping: SchemaMapping2, contacts: ContactsCSV): MappingResult[ContactsCSV] = ???
 
   /**
-   * EXERCISE 8
+   * EXERCISE 6
    *
    * Implement an optimizer for the `SchemaMapping` model that detects and eliminates
    * redundant renames; e.g. renaming "name" to "first_name", and then back to "name".
    */
-  def optimize(schemaMapping: SchemaMapping): SchemaMapping = ???
+  def optimize(schemaMapping: SchemaMapping2): SchemaMapping2 =
+    ???
 }
 
 /**
@@ -200,7 +141,7 @@ object email_filter2 {
   final case class Address(emailAddress: String)
   final case class Email(sender: Address, to: List[Address], subject: String, body: String)
 
-  sealed trait EmailFilter {
+  sealed trait EmailFilter { self =>
 
     /**
      * EXERCISE 1
@@ -267,7 +208,8 @@ object email_filter2 {
    * Implement an interpreter for the `EmailFilter` model that translates it into
    * into tests on the specified email.
    */
-  def matches(filter: EmailFilter, email: Email): Boolean = ???
+  def matches(filter: EmailFilter, email: Email): Boolean =
+    ???
 
   /**
    * EXERCISE 9
