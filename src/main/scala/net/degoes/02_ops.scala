@@ -306,7 +306,7 @@ object ui_events {
     def addListener(listener: Listener): Unit
   }
 
-  final case class Listener(onEvent: GameEvent => Unit) {
+  final case class Listener(onEvent: GameEvent => Unit) { self =>
 
     /**
      * EXERCISE 1
@@ -364,7 +364,7 @@ object education {
   final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) {
     def totalPoints: Int = correctPoints + wrongPoints
 
-    def toBonus: QuizResult = copy(correctPoints = 0, bonusPoints = bonusPoints + correctPoints)
+    def toBonus: QuizResult = QuizResult(0, bonusPoints + correctPoints, 0, Vector.empty)
 
     /**
      * EXERCISE 1
@@ -374,30 +374,40 @@ object education {
      */
     def +(that: QuizResult): QuizResult = ???
   }
+  object QuizResult {
+    /**
+      * EXERCISE 2
+      * 
+      * Add an `empty` QuizResult that, when combined with any quiz result, 
+      * returns that same quiz result.
+      */
+    def empty: QuizResult = ???
+  }
 
-  final case class Quiz(run: () => QuizResult) {
+  final case class Quiz(run: () => QuizResult) { self =>
 
     /**
-     * EXERCISE 2
+     * EXERCISE 3
      *
      * Add an operator `+` that appends this quiz to the specified quiz.
      */
     def +(that: Quiz): Quiz = ???
 
     /**
-     * EXERCISE 3
+     * EXERCISE 4
      *
      * Add a unary operator `bonus` that marks this quiz as a bonus quiz.
      */
     def bonus: Quiz = ???
 
     /**
-     * EXERCISE 4
+     * EXERCISE 5
      *
-     * Add a conditional operator which, if the user gets this quiz right,
-     * will do the `ifPass` quiz afterward; but otherwise, do the `ifFail` quiz.
+     * Add a conditional operator which, if the user gets this quiz right 
+     * enough, as determined by the specified cutoff, will do the `ifPass` 
+     * quiz afterward; but otherwise, do the `ifFail` quiz.
      */
-    def conditional(ifPass: Quiz, ifFail: Quiz): Quiz = ???
+    def conditional(cutoff: Int)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
   }
   object Quiz {
     private def grade[A](answer0: => A, grader: Grader[A]): QuizResult =
@@ -423,21 +433,29 @@ object education {
           case TrueFalse(question)               => grade(answer.toLowerCase().startsWith("t"), grader)
         }
       }
+
+    /**
+      * EXERCISE 6
+      * 
+      * Add an `empty` Quiz that does not ask any questions and only returns 
+      * an empty QuizResult.
+      */
+    def empty: Quiz = ???
   }
 
   final case class Grader[-A](points: Int, isCorrect: A => Either[String, Unit])
   object Grader {
     def isTrue(points: Int): Grader[Boolean] = Grader(points, if (_) Right(()) else Left("The correct answer is true"))
     def isFalse(points: Int): Grader[Boolean] =
-      Grader(points, if (_) Right(()) else Left("The correct answer is false"))
+      Grader(points, v => if (!v) Right(()) else Left("The correct answer is false"))
   }
 
   /**
-   * EXERCISE 5
+   * EXERCISE 7
    *
    * Extend the following quiz with an additional 3 questions, including a
    * tough bonus question; and if the user fails the bonus question, fallback
-   * to a simpler bonus question with fewer points.
+   * to a simpler bonus question with fewer bonus points.
    */
-  lazy val exampleQuiz = Quiz.single(Question.TrueFalse("Is the earth the center of the universe?"), Grader.isFalse(10))
+  lazy val exampleQuiz: Quiz = ???
 }
