@@ -20,6 +20,8 @@ import java.time.Instant
 object credit_card {
 
   /**
+   * EXERCISE 1
+   *
    * Using only sealed traits and case classes, create an immutable data model
    * of a credit card, which must have:
    *
@@ -35,7 +37,8 @@ object credit_card {
    *
    * Using only sealed traits and case classes, create an immutable data model
    * of a product, which could be a physical product, such as a gallon of milk,
-   * or a digital product, such as a book or movie.
+   * or a digital product, such as a book or movie, or an event, such as a
+   * music concert or film showing.
    */
   type Product
 
@@ -91,6 +94,7 @@ object events {
       with UserEvent
 
   class UserAccountCreated(id: Int, val userName: String, val time: Instant) extends Event(id) with UserEvent
+
 }
 
 /**
