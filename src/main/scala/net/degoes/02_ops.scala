@@ -375,12 +375,13 @@ object education {
     def +(that: QuizResult): QuizResult = ???
   }
   object QuizResult {
+
     /**
-      * EXERCISE 2
-      * 
-      * Add an `empty` QuizResult that, when combined with any quiz result, 
-      * returns that same quiz result.
-      */
+     * EXERCISE 2
+     *
+     * Add an `empty` QuizResult that, when combined with any quiz result,
+     * returns that same quiz result.
+     */
     def empty: QuizResult = ???
   }
 
@@ -403,8 +404,8 @@ object education {
     /**
      * EXERCISE 5
      *
-     * Add a conditional operator which, if the user gets this quiz right 
-     * enough, as determined by the specified cutoff, will do the `ifPass` 
+     * Add a conditional operator which, if the user gets this quiz right
+     * enough, as determined by the specified cutoff, will do the `ifPass`
      * quiz afterward; but otherwise, do the `ifFail` quiz.
      */
     def conditional(cutoff: Int)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
@@ -435,11 +436,11 @@ object education {
       }
 
     /**
-      * EXERCISE 6
-      * 
-      * Add an `empty` Quiz that does not ask any questions and only returns 
-      * an empty QuizResult.
-      */
+     * EXERCISE 6
+     *
+     * Add an `empty` Quiz that does not ask any questions and only returns
+     * an empty QuizResult.
+     */
     def empty: Quiz = ???
   }
 

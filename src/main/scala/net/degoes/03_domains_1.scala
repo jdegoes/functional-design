@@ -7,9 +7,11 @@ package net.degoes
  *
  * 1. A set of types that describe a solution to a domain problem.
  *
- * 2. Constructors that allow constructing elements in the domain.
+ * 2. Constructors that allow constructing elements in the domain
+ *    ("simple solutions").
  *
- * 3. Operators that allow transforming & combining domain elements.
+ * 3. Operators that allow transforming & combining domain elements
+ *    ("refining & building bigger solutions out of smaller ones").
  *
  * Domains allow describing solutions to specific problems in an application.
  * Done properly, a small set of constructors and composable operators can be
@@ -72,11 +74,10 @@ object spreadsheet {
     /**
      * EXERCISE 1
      *
-     * Design a subtype of `CellContents` called `Expr`, which represents an
-     * expression dynamically computed from the spreadsheet. Make sure that
-     * `Expr` is a final case class.
+     * Design a subtype of `CellContents` called `Expr`, which represents a
+     * value that is dynamically computed from a spreadsheet.
      */
-    final case class Expr() extends CellContents {
+    final case class Expr() extends CellContents { self =>
 
       /**
        * EXERCISE 2
@@ -99,16 +100,22 @@ object spreadsheet {
       /**
        * EXERCISE 4
        *
-       * Add some constructors for `Expr`, which can make `Expr` from values
-       * outside the domain. For example, one constructor could make an `Expr`
-       * from a `String`. Another constructor could sum a row/column range.
+       * Add a constructor that makes an Expr from a CellContents.
        */
-      def fromString(s: String): Expr = ???
+      def const(contents: CellContents): Expr = ???
+
+      /**
+       * EXERCISE 5
+       *
+       * Add a constructor that provides access to the value of the
+       * specified cell, identified by col/row.
+       */
+      def at(col: Int, row: Int): Expr = ???
     }
   }
 
   /**
-   * EXERCISE 5
+   * EXERCISE 6
    *
    * Describe a cell whose contents are the sum of other cells.
    */
@@ -149,19 +156,19 @@ object etl {
    * Design a data type that models a value. Every value should have a `DataType`
    * that identifies its type (string, numeric, or data/time).
    */
-  trait DataValue {
+  sealed trait DataValue {
     def dataType: DataType
   }
 
   /**
-   * `Pipeline` is a data type that models a step in an ETL pipeline.
+   * `Pipeline` is a data type that models one or more steps in an ETL pipeline.
    *
    * NOTE: This data type will purely *describe* steps in a pipeline. It will
    * not actually perform these steps. Separately, you could implement a
    * function to execute a pipeline by performing the steps it models, but
    * this task is beyond the scope of these exercises.
    */
-  sealed trait Pipeline {
+  sealed trait Pipeline { self =>
 
     /**
      * EXERCISE 4
@@ -178,10 +185,9 @@ object etl {
      * fails, switching over and trying another pipeline.
      */
     def orElse(that: Pipeline): Pipeline = ???
-  }
-  object Pipeline {
 
-    /** EXERCISE 6
+    /**
+     * EXERCISE 6
      *
      * Add an operator to rename a column in a pipeline.
      */
@@ -192,7 +198,7 @@ object etl {
      *
      * Add an operator to coerce a column into a specific type in a pipeline.
      */
-    def coerce(column: String, newType: DataType): Pipeline = ???
+    def coerce(column: String, newType: DataType): Pipeline = Pipeline.Coerce(self, column, newType)
 
     /**
      * EXERCISE 8
@@ -206,15 +212,28 @@ object etl {
      *
      * To replace nulls in the specified column with a specified value.
      */
-    def replaceNulls(column: String, value: DataValue): Pipeline = ???
+    def replaceNulls(column: String, defaultValue: DataValue): Pipeline = ???
   }
+  object Pipeline {
+
+    /**
+     * EXERCISE 10
+     *
+     * Add a constructor for `Pipeline` that models extraction of data from
+     * the specified data repository.
+     */
+    def extract(repo: DataRepo): Pipeline = ???
+  }
+
+  def run(pipeline: Pipeline, destination: DataRepo): Unit = ???
 
   /**
    * EXERCISE 10
    *
-   * Create a pipeline that models replacing all null ages with "0" as the
-   * default age, and which renames a column "fname" into a column
-   * "first_name", and which coerces the "age" column into an integer type.
+   * Create a pipeline that models extracts data from a URL, replacing all null
+   * "age" columns with "0" as the default age, which renames a column "fname"
+   * into a column "first_name", and which coerces the "age" column into an
+   * integer type.
    */
   lazy val pipeline: Pipeline = ???
 }
@@ -236,7 +255,7 @@ object analytics {
    * For efficiency, the page should be stored inside an `Array[Double]`, but
    * not exposed outside the data type.
    */
-  case class ColumnarPage() {
+  final case class ColumnarPage() {
 
     /** EXERCISE 2
      *
@@ -277,10 +296,10 @@ object analytics {
     /**
      * EXERCISE 6
      *
-     * Add an `extend(n: Int)` operation that extends the length of the page
-     * to the specified number, by using "wraparound" semantics.
+     * Add an extend operation that extends the length of the page to the
+     * specified length, by using "wraparound" semantics.
      */
-    def extend(n: Int): Int = ???
+    def extend(n: Int): ColumnarPage = ???
   }
   object ColumnarPage {
 
