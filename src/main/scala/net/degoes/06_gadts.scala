@@ -17,10 +17,10 @@ package net.degoes
  * calculate values in a user-defined way.
  */
 object expr {
-  sealed trait Expr[+A]
-  object Expr {
-    final case class Integer(value: Int) extends Expr[Int]
-    final case class Str(value: String)  extends Expr[String]
+  sealed trait CalculatedValue[+A]
+  object CalculatedValue {
+    final case class Integer(value: Int) extends CalculatedValue[Int]
+    final case class Str(value: String)  extends CalculatedValue[String]
 
     /**
      * EXERCISE 1
@@ -78,9 +78,9 @@ object expr {
     final case class StartsWith()
   }
 
-  import Expr._
+  import CalculatedValue._
 
-  def calculate[A](expr: Expr[A]): A =
+  def calculate[A](expr: CalculatedValue[A]): A =
     expr match {
       case Integer(v) => v
       case Str(v)     => v
@@ -147,13 +147,16 @@ object parser {
      * NOTE: Be sure to modify the `parse` method below, so that it can
      * handle the new operation.
      */
-    final case class Sequence()
+    final case class Sequence[A, B]()
   }
 
   import Parser._
 
-  def parse[A](parser: Parser[A], input: String): Option[A] =
+  def parse[A](parser: Parser[A], input: String): Either[String, (String, A)] =
     parser match {
-      case OneChar => input.headOption
+      case OneChar =>
+        input.headOption
+          .map((a: Char) => Right(input -> a))
+          .getOrElse(Left("The input to the parser has no remaining characters"))
     }
 }

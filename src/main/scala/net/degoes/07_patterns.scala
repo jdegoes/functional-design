@@ -23,7 +23,7 @@ object binary_values {
      * such a way that:
      *
      * {{{
-     * compose(compose(a, b), c) compose(a, compose(b, c))
+     * compose(compose(a, b), c) == compose(a, compose(b, c))
      * }}}
      *
      * for all `a`, `b`, `c`.
@@ -61,7 +61,7 @@ object binary_values {
      * function in such a way that:
      *
      * {{{
-     * compose(a, b) == compose(b, c)
+     * compose(a, b) == compose(b, a)
      * }}}
      *
      * for all `a`, `b`.
@@ -208,7 +208,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, `c`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -227,7 +227,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, `c`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -246,7 +246,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, `c`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -265,7 +265,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, `c`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -284,7 +284,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -303,7 +303,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -322,7 +322,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -341,7 +341,7 @@ object binary_tcs {
      *
      * for all `a`, `b`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -357,7 +357,7 @@ object binary_tcs {
      * combine two queries into one query, such that both results would
      * be queried when the model is executed.
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -370,7 +370,7 @@ object binary_tcs {
      * Choose or create a different type such that your implementation
      * of `compose` represents modeling "both".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
   }
@@ -385,7 +385,7 @@ object binary_tcs {
      * a data type that represents a query, then this `compose` could
      * model running one query, but if it fails, running another.
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -398,7 +398,7 @@ object binary_tcs {
      * Choose or create a different type such that your implementation
      * of `compose` represents modeling "or".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
   }
@@ -417,7 +417,7 @@ object binary_tcs {
      *
      * for all `a`, where `~` means "equivalent to".
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def identity: SomeType[Any] = ???
 
@@ -441,7 +441,7 @@ object binary_tcs {
      * Note that `Either[A, Nothing]` is equivalent to `A`, and
      * `Either[Nothing, A]` is equivalent to `A`.
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def identity: SomeType[Nothing] = ???
 
@@ -464,7 +464,7 @@ object imperative_values {
      */
     type SomeType
 
-    def andThen(first: SomeType, second: SomeType): SomeType
+    def andThen(first: SomeType, second: SomeType): SomeType = ???
   }
 
   trait Exercise2 {
@@ -493,9 +493,9 @@ object imperative_tcs {
      * Choose or create a data type such that you can implement `andThen` in
      * such a way that it models sequential composition.
      */
-    type SomeType[_]
+    type SomeType[A]
 
-    def andThen[A, B](first: SomeType[A], second: A => SomeType[B]): SomeType[B]
+    def andThen[A, B](first: SomeType[A], second: A => SomeType[B]): SomeType[B] = ???
   }
 
   trait Exercise2 {
@@ -506,7 +506,7 @@ object imperative_tcs {
      * Choose or create a different type such that you can implement `andThen` in
      * such a way that it models sequential composition.
      */
-    type SomeType[_]
+    type SomeType[A]
 
     def andThen[A, B](first: SomeType[A], second: A => SomeType[B]): SomeType[B]
   }
@@ -568,12 +568,9 @@ object recipes {
     def flatMap[B](f: A => Recipe[B]): Recipe[B] = ???
   }
   object Recipe {
-    case object Disaster                                                extends Recipe[Nothing]
-    final case class AddIngredient(ingredient: Ingredient)              extends Recipe[Ingredient]
-    final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int)   extends Recipe[Baked[A]]
-    final case class Combine[A, B](left: Recipe[A], right: Recipe[B])   extends Recipe[(A, B)]
-    final case class TryOrElse[A, B](left: Recipe[A], right: Recipe[B]) extends Recipe[Either[A, B]]
-    final case class Transform[A, B](recipe: Recipe[A], f: A => B)      extends Recipe[B]
+    case object Disaster                                              extends Recipe[Nothing]
+    final case class AddIngredient(ingredient: Ingredient)            extends Recipe[Ingredient]
+    final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]]
   }
   import Recipe._
 
@@ -589,25 +586,5 @@ object recipes {
         if (time * temp < 1000) Baked.Undercooked(a)
         else if (time * temp > 6000) Baked.Burnt(a)
         else Baked.CookedPerfect(a)
-
-      case Combine(left0, right0) =>
-        val left  = make(left0)
-        val right = make(right0)
-
-        println(s"Combining ${left} and ${right}")
-
-        (left, right)
-
-      case TryOrElse(left0, right0) =>
-        try {
-          val left = make(left0)
-
-          Left(left)
-        } catch {
-          case _: Exception =>
-            Right(make(right0))
-        }
-
-      case Transform(recipe, f) => f(make(recipe))
     }
 }

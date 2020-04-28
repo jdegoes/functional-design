@@ -74,35 +74,35 @@ object spreadsheet {
     /**
      * EXERCISE 1
      *
-     * Design a subtype of `CellContents` called `Expr`, which represents a
+     * Design a subtype of `CellContents` called `CalculatedValue`, which represents a
      * value that is dynamically computed from a spreadsheet.
      */
-    final case class Expr() extends CellContents { self =>
+    final case class CalculatedValue() extends CellContents { self =>
 
       /**
        * EXERCISE 2
        *
-       * Add some operators to transform one `Expr` into another `Expr`. For
+       * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
        * example, one operator could "negate" a double expression.
        */
-      def negate: Expr = ???
+      def negate: CalculatedValue = ???
 
       /**
        * EXERCISE 3
        *
-       * Add some operators to combine `Expr`. For example, one operator
+       * Add some operators to combine `CalculatedValue`. For example, one operator
        * could sum two double expressions.
        */
-      def sum(that: Expr): Expr = ???
+      def sum(that: CalculatedValue): CalculatedValue = ???
     }
-    object Expr {
+    object CalculatedValue {
 
       /**
        * EXERCISE 4
        *
-       * Add a constructor that makes an Expr from a CellContents.
+       * Add a constructor that makes an CalculatedValue from a CellContents.
        */
-      def const(contents: CellContents): Expr = ???
+      def const(contents: CellContents): CalculatedValue = ???
 
       /**
        * EXERCISE 5
@@ -110,7 +110,7 @@ object spreadsheet {
        * Add a constructor that provides access to the value of the
        * specified cell, identified by col/row.
        */
-      def at(col: Int, row: Int): Expr = ???
+      def at(col: Int, row: Int): CalculatedValue = ???
     }
   }
 
