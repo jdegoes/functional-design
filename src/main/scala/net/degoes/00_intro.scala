@@ -4,6 +4,17 @@ import zio._
 import zio.duration._
 
 /**
+ * Functional design is a system for modeling solutions to problem in some
+ * domain as _values_, with a small set of primitives for constructing,
+ * transforming, and composing solutions in order to solve even the most
+ * complex problems easily, with high testability and reasonability.
+ *
+ * Functional design embraces the composability, immutability, and static
+ * type safety afforded by functional programming, and applies it to solve
+ * real world problems, close to business domains, all without the esoteric
+ * type classes and jargon, implicits, monad transformers, and other tools
+ * common in early-stage functional Scala.
+ *
  * Functional design appears in a number of Scala libraries, including ZIO.
  * It provides very powerful, concise, and type-safe solutions to a many
  * complex problems within given domains.

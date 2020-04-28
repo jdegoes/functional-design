@@ -3,19 +3,18 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, a domain consists of three things:
+ * In Functional Design, a functional domain consists of three things:
  *
- * 1. A set of types that describe a solution to a domain problem.
+ * 1. A set of types that model a solution to a domain problem.
  *
- * 2. Constructors that allow constructing elements in the domain
- *    ("simple solutions").
+ * 2. Constructors that allow constructing simple solutions.
  *
- * 3. Operators that allow transforming & combining domain elements
- *    ("refining & building bigger solutions out of smaller ones").
+ * 3. Operators that solving more complex problems by transforming
+ *    and combining solutions for subproblems.
  *
- * Domains allow describing solutions to specific problems in an application.
- * Done properly, a small set of constructors and composable operators can be
- * so powerful, it can describe all possible solutions in that domain.
+ * Functional domains allow modeling solutions to problems in a specific domain.
+ * Done properly, a small set of primitives can be so powerful, they can be used
+ * compositionally to describe all possible solutions in that domain.
  *
  * A functional domain can be regarded as a type of internal domain-specific
  * language (DSL), which is designed specifically for expressing compositional

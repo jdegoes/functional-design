@@ -3,24 +3,24 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, there are two ways to encode domain constructors and
- * operators:
+ * In Functional Design, there are two ways to encode functional domain
+ * constructors and operators:
  *
- * 1. As a function or interface, whose methods perform the solution. This is
+ * 1. Using a function or interface, whose methods execute the solution. This is
  *    sometimes called the "final" encoding. It's a direct, "executable" encoding
- *    of a domain. If some domain is modeled with a class or case class, or an
- *    open trait that is implemented by classes, then it's probably a final
- *    encoding.
+ *    of a domain. If some functional domain is modeled with a class or case
+ *    class, or an open trait that is implemented by classes, then it's
+ *    probably a final encoding.
  *
- * 2. As a pure data structure, which declaratively describes the solution, but
+ * 2. Using a pure data structure, which declaratively describes the solution, but
  *    which does not perform the solution. It's an indirect, "declarative"
- *    encoding of a domain. If some domain type is modeled with a sealed trait,
- *    then it's probably an initial encoding.
+ *    encoding of a domain. If some functional domain type is modeled with a
+ *    sealed trait, then it's probably an initial encoding.
  *
  * In the second encoding, a so-called "executor" or "interpreter" or "compiler"
- * translates the data structure, which describes a solution, into either
+ * translates the data structure, which merely models a solution, into either
  * executable code or into another lower-level domain, which provides the
- * capabilities modeled by the domain.
+ * capabilities modeled by the functional domain.
  *
  * These two methods are equivalent; legacy code prefers (1), while often (2)
  * can be more useful, especially for new code.
