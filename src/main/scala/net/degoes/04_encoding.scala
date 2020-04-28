@@ -288,16 +288,22 @@ object spreadsheet2 {
       /**
        * EXERCISE 3
        *
-       * Add some constructors for `Expr`, which can make `Expr` from values
-       * outside the domain. For example, one constructor could make an `Expr`
-       * from a `String`. Another constructor could sum a row/column range.
+       * Add a constructor that makes an Expr from a CellContents.
        */
-      def fromString(s: String): Expr = ???
+      def const(contents: CellContents): Expr = ???
+
+      /**
+       * EXERCISE 4
+       *
+       * Add a constructor that provides access to the value of the
+       * specified cell, identified by col/row.
+       */
+      def at(col: Int, row: Int): Expr = ???
     }
   }
 
   /**
-   * EXERCISE 4
+   * EXERCISE 5
    *
    * Implement an interpreter for the `CellContents.Expr` model that translates it into
    * static cell contents by evaluating the expression.
