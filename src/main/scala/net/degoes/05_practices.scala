@@ -110,7 +110,7 @@ object ui_components {
    * The following API is not composable—there is no domain. Introduce a
    * domain with elements, constructors, and composable operators.
    */
-  trait Turtle {
+  trait Turtle { self =>
     def turnLeft(): Unit
 
     def turnRight(): Unit
