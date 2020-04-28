@@ -105,8 +105,9 @@ object loyalty_program {
     /**
      * EXERCISE 3
      *
-     * Augment `RuleSet` with a constructor that models execution of a `RuleAction`
-     * whenever a `RuleCalculation[Boolean]` evaluates to true.
+     * Augment `RuleSet` with a constructor that models execution of a
+     * `SystemAction` whenever a `RuleCalculation[Boolean]` evaluates to
+     * true.
      */
     final case class When() extends RuleSet
   }
@@ -120,7 +121,8 @@ object loyalty_program {
      * calculation produce booleans, and which models the boolean conjunction
      * ("and") of the two boolean values.
      */
-    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = ???
+    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
+      ???
 
     /**
      * EXERCISE 5
@@ -148,7 +150,7 @@ object loyalty_program {
      * relation holds.
      */
     def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
-      ???
+      RuleCalculation.GreaterThan(self.widen[Currency](ev), that)
 
     /**
      * EXERCISE 8
@@ -182,8 +184,13 @@ object loyalty_program {
      */
     def <=[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
       ???
+
+    def widen[B](implicit ev: A <:< B): RuleCalculation[B] = RuleCalculation.Widen(self)(ev)
   }
   object RuleCalculation {
+    final case class GreaterThan[A: Numeric](left: RuleCalculation[A], right: RuleCalculation[A])
+        extends RuleCalculation[Boolean]
+    final case class Widen[A, B](rc: RuleCalculation[A])(implicit val ev: A <:< B) extends RuleCalculation[B]
 
     /**
      * EXERCISE 11
@@ -191,7 +198,7 @@ object loyalty_program {
      * Add a constructor that models calculation of a constant value of the
      * specified type.
      */
-    final case class Constant[A]()
+    final case class Constant[A](value: A) extends RuleCalculation[A]
 
     /**
      * EXERCISE 12
@@ -199,7 +206,7 @@ object loyalty_program {
      * Add a constructor that models calculation of the price of an item that
      * the user buys, in a fiscal currency.
      */
-    final case class PurchasePrice()
+    final case class PurchasePrice() extends RuleCalculation[FiscalAmount]
 
     /**
      * EXERCISE 13
@@ -218,25 +225,22 @@ object loyalty_program {
     final case class DaysSinceLastPurchase()
   }
 
-  sealed trait RuleAction
-  object RuleAction {
-    sealed trait UserAction extends RuleAction
-    object UserAction {
-      final case class Spend(amount: FiscalCurrency)  extends UserAction
-      final case class Return(amount: FiscalCurrency) extends UserAction
-    }
-
-    sealed trait SystemAction extends RuleAction
-    object SystemAction {
-      final case class Credit(amount: LoyaltyCurrency)         extends SystemAction
-      final case class Debit(amount: LoyaltyCurrency)          extends SystemAction
-      case object TierPromotion                                extends SystemAction
-      case object TierDemotion                                 extends SystemAction
-      final case class ChangeStatus(status: UserProgramStatus) extends SystemAction
-    }
+  sealed trait UserAction
+  object UserAction {
+    final case class Spend(amount: FiscalCurrency)  extends UserAction
+    final case class Return(amount: FiscalCurrency) extends UserAction
   }
 
-  final case class Activity(action: RuleAction, instant: Instant)
+  sealed trait SystemAction
+  object SystemAction {
+    final case class Credit(amount: LoyaltyCurrency)         extends SystemAction
+    final case class Debit(amount: LoyaltyCurrency)          extends SystemAction
+    case object TierPromotion                                extends SystemAction
+    case object TierDemotion                                 extends SystemAction
+    final case class ChangeStatus(status: UserProgramStatus) extends SystemAction
+  }
+
+  final case class Activity(action: Either[UserAction, SystemAction], instant: Instant)
 
   sealed trait UserProgramStatus
   object UserProgramStatus {
@@ -252,6 +256,10 @@ object loyalty_program {
    * well as demotion, and changing the status of the user to inactive.
    */
   def ruleSet: RuleSet = ???
+
+  def run(history: List[UserAction], ruleSet: RuleSet): List[SystemAction] = ???
+
+  def describe(ruleSet: RuleSet): String = ???
 }
 
 /**
@@ -280,49 +288,51 @@ object calendar {
   }
 
   final case class TimeSpan(start: HourOfDay, end: HourOfDay)
+  object TimeSpan {
+    val empty: TimeSpan = TimeSpan(HourOfDay(0), HourOfDay(0))
+  }
 
   /**
    * EXERCISE 1
    *
-   * Explore the structure of `CalendarStatus` by deciding what composable,
+   * Explore the structure of `CalendarRegion` by deciding what composable,
    * orthogonal operations to add to the data type.
    */
-  sealed trait CalendarStatus
-  object CalendarStatus {
-    case object Busy extends CalendarStatus
-    case object Free extends CalendarStatus
+  final case class CalendarAppointment(span: TimeSpan) { self =>
+  }
+  object CalendarAppointment {
+    val empty: CalendarAppointment = CalendarAppointment(TimeSpan.empty)
   }
 
   /**
    * EXERCISE 2
    *
-   * Explore the structure of `CalendarRegion` by deciding what composable,
+   * Explore the structure of `DailySchedule` by deciding what composable,
    * orthogonal operations to add to the data type.
+   *
+   * HINT: Consider the union, intersection, & complement of two daily schedules.
    */
-  final case class CalendarRegion(span: TimeSpan, status: CalendarStatus)
+  final case class DailySchedule(set: Set[CalendarAppointment]) { self =>
+  }
+  object DailySchedule {
+    val empty: DailySchedule = DailySchedule(Set())
+  }
 
   /**
    * EXERCISE 3
    *
-   * Explore the structure of `DailySchedule` by deciding what composable,
-   * orthogonal operations to add to the data type.
-   *
-   * HINT: Consider the union and intersection of two daily schedules.
-   */
-  final case class DailySchedule(set: Set[CalendarRegion])
-
-  /**
-   * EXERCISE 4
-   *
    * Explore the structure of `MonthlySchedule` by deciding what composable,
    * orthogonal operations to add to the data type.
    */
-  final case class MonthlySchedule(daysOfMonth: Vector[DailySchedule])
+  final case class MonthlySchedule(daysOfMonth: Vector[DailySchedule]) {}
+  object MonthlySchedule {
+    val empty: MonthlySchedule = MonthlySchedule(Vector())
+  }
 
   final case class Person(name: String)
 
   /**
-   * EXERCISE 5
+   * EXERCISE 4
    *
    * Using the operators you build, express a solution to the following
    * problem: find all the free times that a group of friends can virtually
@@ -389,9 +399,10 @@ object cms {
     def make[Context, State](render: (Context, State) => Html): Component[Context, State] = Leaf(render)
 
     /**
-   * EXERCISE 3
-   *
-   * Add some example components.
-   */
+     * EXERCISE 3
+     *
+     * Add some example components.
+     */
+    val components = ???
   }
 }
