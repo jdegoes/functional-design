@@ -37,7 +37,7 @@ object credit_card {
    *
    * Using only sealed traits and case classes, create an immutable data model
    * of a product, which could be a physical product, such as a gallon of milk,
-   * or a digital product, such as a book or movie, or access to an event, such 
+   * or a digital product, such as a book or movie, or access to an event, such
    * as a music concert or film showing.
    */
   type Product
