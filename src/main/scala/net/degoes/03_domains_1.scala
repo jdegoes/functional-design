@@ -73,8 +73,8 @@ object spreadsheet {
     /**
      * EXERCISE 1
      *
-     * Design a subtype of `CellContents` called `CalculatedValue`, which represents a
-     * value that is dynamically computed from a spreadsheet.
+     * Design a subtype of `CellContents` called `CalculatedValue`, which
+     * represents a value that is dynamically computed from a spreadsheet.
      */
     final case class CalculatedValue() extends CellContents { self =>
 
@@ -144,8 +144,8 @@ object etl {
   /**
    * EXERCISE 2
    *
-   * Design a data type that models the type of data the ETL pipeline has access
-   * to. This will include string, numeric, and date/time data.
+   * Design a data type that models the type of primitives the ETL pipeline
+   * has access to. This will include string, numeric, and date/time data.
    */
   type DataType
 
@@ -160,7 +160,9 @@ object etl {
   }
 
   /**
-   * `Pipeline` is a data type that models one or more steps in an ETL pipeline.
+   * `Pipeline` is a data type that models a transformation from an input data
+   * set into an output data step, as a series of one or more individual
+   * operations.
    *
    * NOTE: This data type will purely *describe* steps in a pipeline. It will
    * not actually perform these steps. Separately, you could implement a
@@ -172,10 +174,10 @@ object etl {
     /**
      * EXERCISE 4
      *
-     * Add a `+` operator that models sequentially applying this pipeline, and
-     * then the specified pipeline.
+     * Add a `merge` operator that models the merge of the output of this
+     * pipeline with the output of the specified pipeline.
      */
-    def +(that: Pipeline): Pipeline = ???
+    def merge(that: Pipeline): Pipeline = ???
 
     /**
      * EXERCISE 5
@@ -224,8 +226,6 @@ object etl {
     def extract(repo: DataRepo): Pipeline = ???
   }
 
-  def execute(pipeline: Pipeline, destination: DataRepo): Unit = ???
-
   /**
    * EXERCISE 10
    *
@@ -242,7 +242,7 @@ object etl {
  *
  * Consider a domain where you are doing in-memory analytics on values of type
  * `Double`. Mainly, this involves adding, multiplying, and so forth, on
- * "pages"" of columnar data. A page could contain a certain number of "rows"
+ * "pages" of columnar data. A page could contain a certain number of "rows"
  * of Double data.
  */
 object analytics {
@@ -254,9 +254,18 @@ object analytics {
    * For efficiency, the page should be stored inside an `Array[Double]`, but
    * not exposed outside the data type.
    */
-  final case class ColumnarPage() {
+  final case class ColumnarPage() { self =>
 
-    /** EXERCISE 2
+    /**
+     * EXERCISE 2
+     *
+     * Add an extend operation that extends the length of the page to the
+     * specified length, by using "wraparound" semantics.
+     */
+    def ensureLength(n: Int): ColumnarPage = ???
+
+    /**
+     * EXERCISE 3
      *
      * Add a `+` operation that adds one page with another page by aligning the
      * rows in the two column pages and performing the operation pairwise. If
@@ -266,7 +275,7 @@ object analytics {
     def +(that: ColumnarPage): ColumnarPage = ???
 
     /**
-     * EXERCISE 3
+     * EXERCISE 4
      *
      * Add a `*` operation that multiplies one page with another page by
      * aligning the rows in the two column pages and performing the operation
@@ -276,7 +285,7 @@ object analytics {
     def *(that: ColumnarPage): ColumnarPage = ???
 
     /**
-     * EXERCISE 4
+     * EXERCISE 5
      *
      * Add a `-` operation that subtracts one page from another page by aligning
      * the rows in the two column pages and performing the operation pairwise.
@@ -285,20 +294,12 @@ object analytics {
      */
     def -(that: ColumnarPage): ColumnarPage = ???
 
-    /** EXERCISE 5
+    /** EXERCISE 6
      *
      * Add a `reduce` operation that reduces the entire page down to a page
      * with only a single entry by using the user-specified combining function.
      */
     def reduce(f: (Double, Double) => Double): ColumnarPage = ???
-
-    /**
-     * EXERCISE 6
-     *
-     * Add an extend operation that extends the length of the page to the
-     * specified length, by using "wraparound" semantics.
-     */
-    def extend(n: Int): ColumnarPage = ???
   }
   object ColumnarPage {
 

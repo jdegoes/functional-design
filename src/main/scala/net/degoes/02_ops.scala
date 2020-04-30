@@ -468,6 +468,12 @@ object education {
     def isTrue(points: Int): Grader[Boolean] = Grader(points, if (_) Right(()) else Left("The correct answer is true"))
     def isFalse(points: Int): Grader[Boolean] =
       Grader(points, v => if (!v) Right(()) else Left("The correct answer is false"))
+
+    def isMultipleChoice(points: Int)(choiceNumber: Int): Grader[Int] =
+      Grader(points, v => if (v == choiceNumber) Right(()) else Left(s"The correct answer is ${choiceNumber}"))
+
+    def isText(points: Int)(text: String): Grader[String] =
+      Grader(points, v => if (v == text) Right(()) else Left(s"The correct answer is ${text}"))
   }
 
   /**
@@ -477,5 +483,6 @@ object education {
    * tough bonus question; and if the user fails the bonus question, fallback
    * to a simpler bonus question with fewer bonus points.
    */
-  lazy val exampleQuiz: Quiz = ???
+  lazy val exampleQuiz: Quiz =
+    Quiz.single(Question.TrueFalse("Is coffee the best hot beverage on planet earth?"), Grader.isTrue(10))
 }
