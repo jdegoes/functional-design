@@ -373,11 +373,14 @@ object education {
   // fill in when answering the question.
   sealed trait Question[A] {
     def question: String
+
+    def checker: Answer[A]
   }
   object Question {
-    final case class Text(question: String)                                    extends Question[String]
-    final case class MultipleChoice(question: String, choices: Vector[String]) extends Question[Int]
-    final case class TrueFalse(question: String)                               extends Question[Boolean]
+    final case class Text(question: String, checker: Answer[String]) extends Question[String]
+    final case class MultipleChoice(question: String, choices: Vector[String], checker: Answer[Int])
+        extends Question[Int]
+    final case class TrueFalse(question: String, checker: Answer[Boolean]) extends Question[Boolean]
   }
 
   final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) {
@@ -430,9 +433,9 @@ object education {
     def conditional(cutoff: Int)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
   }
   object Quiz {
-    private def grade[A](answer0: => A, grader: Grader[A]): QuizResult =
+    private def grade[A](f: String => A, grader: Answer[A]): QuizResult =
       scala.util.Try {
-        val answer = answer0
+        val answer = f(scala.io.StdIn.readLine())
 
         grader.isCorrect(answer) match {
           case Left(string)  => QuizResult(0, 0, grader.points, Vector(string))
@@ -440,17 +443,21 @@ object education {
         }
       }.getOrElse(QuizResult(0, 0, grader.points, Vector("The format of your answer was not recognized")))
 
-    def single[A](question: Question[A], grader: Grader[A]): Quiz =
+    def apply[A](question: Question[A]): Quiz =
       Quiz { () =>
         import Question._
 
         println(question.question)
-        val answer = scala.io.StdIn.readLine()
 
         question match {
-          case Text(question)                    => grade(answer, grader)
-          case MultipleChoice(question, choices) => grade(answer.toInt, grader)
-          case TrueFalse(question)               => grade(answer.toLowerCase().startsWith("t"), grader)
+          case Text(question, checker) => grade(identity(_), checker)
+          case MultipleChoice(question, choices, checker) =>
+            val choicePrintout = choices.zipWithIndex.map { case (c, i) => s"${i}. ${c}" }.mkString("\n")
+
+            println("Your options are: \n" + choicePrintout)
+
+            grade(_.toInt, checker)
+          case TrueFalse(question, checker) => grade(_.toLowerCase().startsWith("t"), checker)
         }
       }
 
@@ -463,17 +470,17 @@ object education {
     def empty: Quiz = ???
   }
 
-  final case class Grader[-A](points: Int, isCorrect: A => Either[String, Unit])
-  object Grader {
-    def isTrue(points: Int): Grader[Boolean] = Grader(points, if (_) Right(()) else Left("The correct answer is true"))
-    def isFalse(points: Int): Grader[Boolean] =
-      Grader(points, v => if (!v) Right(()) else Left("The correct answer is false"))
+  final case class Answer[-A](points: Int, isCorrect: A => Either[String, Unit])
+  object Answer {
+    def isTrue(points: Int): Answer[Boolean] = Answer(points, if (_) Right(()) else Left("The correct answer is true"))
+    def isFalse(points: Int): Answer[Boolean] =
+      Answer(points, v => if (!v) Right(()) else Left("The correct answer is false"))
 
-    def isMultipleChoice(points: Int)(choiceNumber: Int): Grader[Int] =
-      Grader(points, v => if (v == choiceNumber) Right(()) else Left(s"The correct answer is ${choiceNumber}"))
+    def isMultipleChoice(points: Int)(choiceNumber: Int): Answer[Int] =
+      Answer(points, v => if (v == choiceNumber) Right(()) else Left(s"The correct answer is ${choiceNumber}"))
 
-    def isText(points: Int)(text: String): Grader[String] =
-      Grader(points, v => if (v == text) Right(()) else Left(s"The correct answer is ${text}"))
+    def isText(points: Int)(text: String): Answer[String] =
+      Answer(points, v => if (v == text) Right(()) else Left(s"The correct answer is ${text}"))
   }
 
   /**
@@ -484,5 +491,5 @@ object education {
    * to a simpler bonus question with fewer bonus points.
    */
   lazy val exampleQuiz: Quiz =
-    Quiz.single(Question.TrueFalse("Is coffee the best hot beverage on planet earth?"), Grader.isTrue(10))
+    Quiz(Question.TrueFalse("Is coffee the best hot beverage on planet earth?", Answer.isTrue(10)))
 }

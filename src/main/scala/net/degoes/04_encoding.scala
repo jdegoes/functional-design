@@ -55,7 +55,7 @@ object education_final {
     def bonus: Quiz2 = ???
   }
   object Quiz2 {
-    def single[A](question: Question[A], grader: Grader[A]): Quiz2 = ???
+    def apply[A](question: Question[A]): Quiz2 = ???
   }
 
   /**
