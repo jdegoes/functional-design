@@ -62,6 +62,18 @@ object input_stream {
      */
     def buffered: IStream = ???
   }
+
+  /**
+   * EXERCISE 4
+   *
+   * Construct an IStream that will read from `primary`,
+   * or will read from the concatenation of all `secondaries`,
+   * and will buffer everything.
+   */
+  lazy val solution: IStream = ???
+
+  lazy val primary: IStream           = ???
+  lazy val secondaries: List[IStream] = ???
 }
 
 /**
@@ -139,8 +151,11 @@ object contact_processing {
   }
 
   final case class ContactsCSV(schema: SchemaCSV, content: Vector[Vector[String]]) { self =>
+    def get(column: String): Option[Vector[String]] =
+      columnOf(column).map(i => content.map(row => row(i)))
+
     def add(columnName: String, column: Vector[String]): ContactsCSV =
-      copy(schema = schema.add(columnName), content = content :+ column)
+      copy(schema = schema.add(columnName), content = content.zip(column).map { case (xs, x) => xs :+ x })
 
     def columnNames: List[String] = schema.columnNames
 
@@ -164,25 +179,30 @@ object contact_processing {
       else copy(schema = SchemaCSV(schema.columnNames.updated(index, newColumn)))
     }
 
-    def relocate(i: Int, j: Int): Option[ContactsCSV] =
-      if (i < content.length && j < content.length)
-        schema
-          .relocate(i, j)
-          .map(schema => copy(schema = schema, content = content.updated(j, content(i)).updated(i, content(j))))
-      else None
+    def relocate(column: String, j: Int): Option[ContactsCSV] =
+      columnOf(column).flatMap { i =>
+        if (i < content.length && j < content.length)
+          schema
+            .relocate(i, j)
+            .map(schema =>
+              copy(schema = schema, content = content.map(row => row.updated(j, row(i)).updated(i, row(j))))
+            )
+        else None
+      }
 
-    def delete(i: Int): ContactsCSV =
-      copy(schema = schema.delete(i), content = content.take(i) ++ content.drop(i + 1))
+    def delete(column: String): ContactsCSV =
+      columnOf(column).map { i =>
+        copy(schema = schema.delete(i), content = content.map(row => row.take(i) ++ row.drop(i + 1)))
+      }.getOrElse(self)
 
     def combine(column1: String, column2: String)(
       newColumn: String
     )(f: (String, String) => String): Option[ContactsCSV] =
       for {
-        _index1          <- columnOf(column1)
-        _index2          <- columnOf(column2)
-        (index1, index2) = if (_index1 < _index2) (_index1, _index2) else (_index2, _index1)
-        column           = content(index1).zip(content(index2)).map(f.tupled)
-      } yield add(newColumn, column).delete(index1).delete(index2)
+        index1 <- columnOf(column1)
+        index2 <- columnOf(column2)
+        column = content.map(row => f(row(index1), row(index2)))
+      } yield add(newColumn, column).delete(column1).delete(column1)
   }
 
   sealed trait MappingResult[+A]
@@ -214,12 +234,12 @@ object contact_processing {
     def orElse(that: SchemaMapping): SchemaMapping = ???
 
     /**
-     * EXERCISE 3
+     * BONUS: EXERCISE 3
      *
-     * Add an `exclude` operator that returns a new schema mapping that
-     * excludes the specified column names from the schema mapping.
+     * Add an `protect` operator that returns a new schema mapping that
+     * preserve the specified column names in the final result.
      */
-    def exclude(columnNames: Set[String]): SchemaMapping = ???
+    def protect(columnNames: Set[String]): SchemaMapping = ???
   }
   object SchemaMapping {
 
@@ -235,18 +255,17 @@ object contact_processing {
      *
      * Add a constructor for `SchemaMapping` that combines two columns into one.
      */
-    def combine(leftColumn: String, rightColumn: String)(
-      newName: String,
+    def combine(leftColumn: String, rightColumn: String)(newName: String)(
       f: (String, String) => String
     ): SchemaMapping = ???
 
     /**
      * EXERCISE 5
      *
-     * Add a constructor for `SchemaMapping` that moves the index of the ith
-     * column to the jth position.
+     * Add a constructor for `SchemaMapping` that moves the column of the
+     * specified name to the jth position.
      */
-    def relocate(i: Int, j: Int): SchemaMapping = ???
+    def relocate(column: String, j: Int): SchemaMapping = ???
 
     /**
      * EXERCISE 6
