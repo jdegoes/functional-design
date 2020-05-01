@@ -121,8 +121,7 @@ object loyalty_program {
      * calculation produce booleans, and which models the boolean conjunction
      * ("and") of the two boolean values.
      */
-    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
-      ???
+    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = ???
 
     /**
      * EXERCISE 5
@@ -405,4 +404,105 @@ object cms {
      */
     val components = ???
   }
+}
+
+/**
+ * JSON VALIDATION - EXERCISE SET 4
+ *
+ * Consider a domain where incoming JSON documents are stored into a NoSQL
+ * database, but before being stored, they must be validated by flexible
+ * rules. If validation fails, descriptive error messages must be generated
+ * that allow clients of the JSON endpoint to fix the issues with their data.
+ */
+object input_validation {
+  sealed trait Json {
+
+    /**
+     * EXERCISE 1
+     *
+     * Implement a method to retrieve the JSON value at the specified path, or
+     * fail with a descriptive error message.
+     */
+    def get(path: JsonPath): Either[String, Json] = ???
+  }
+  object Json {
+    case object Null                                  extends Json
+    final case class Bool(value: Boolean)             extends Json
+    final case class Number(value: BigDecimal)        extends Json
+    final case class Text(value: String)              extends Json
+    final case class Sequence(value: List[Json])      extends Json
+    final case class Object(value: Map[String, Json]) extends Json
+  }
+
+  sealed trait JsonPath { self =>
+    def +(that: JsonPath): JsonPath =
+      that match {
+        case JsonPath.Identity             => self
+        case JsonPath.Field(parent, name)  => JsonPath.Field(self + parent, name)
+        case JsonPath.Index(parent, index) => JsonPath.Index(self + parent, index)
+      }
+
+    def field(name: String): JsonPath = JsonPath.Field(self, name)
+
+    def index(index: Int): JsonPath = JsonPath.Index(self, index)
+  }
+  object JsonPath {
+    case object Identity                                   extends JsonPath
+    final case class Field(parent: JsonPath, name: String) extends JsonPath
+    final case class Index(parent: JsonPath, index: Int)   extends JsonPath
+
+    def identity: JsonPath = Identity
+  }
+
+  /**
+   * REQUIREMENTS
+   *
+   * 1. Verify that a JSON path is a string, number, null, boolean, object, or array.
+   * 2. Verify that numbers are integer, non-zero, or within some range.
+   * 3. Verify that one part of a JSON value constraints another part.
+   * 4. Verify that a string can be interpreted as an ISO date time.
+   * 5. Verify that an object has a field.
+   * 6. Verify that an array has a certain minimum length.
+   * 7. Verify that a field in an object meets certain requirements.
+   * 8. Verify that an element in an array meets certain requirements.
+   * 9. Verify that all elements in an array meet certain requirements.
+   */
+  type Validation[+A]
+  object Validation {}
+
+  /**
+   * Implement the `validate` function that can validate some JSON and either
+   * return descriptive error messages, or succeed with a unit value.
+   */
+  def validate[A](json: Json, validation: Validation[A]): Either[List[String], A] = ???
+}
+
+/**
+ * DATA PROCESSING - EXERCISE SET 5
+ *
+ * Consider a domain where data must be loaded from various sources, processed
+ * through a flexible graph of components.
+ */
+object data_processing {
+  import zio._
+
+  type Unknown
+
+  sealed trait Expr[-A, +B]
+  object Expr {}
+
+  sealed trait SourceDefinition
+  object SourceDefinition {}
+
+  def load(source: SourceDefinition): Source[Unknown] = ???
+
+  sealed trait Flow[-Input, +Output]
+
+  type Transformer[-A, +B] = Flow[A, B]
+  type Source[+A]          = Flow[Unit, A]
+  type Sink[-A]            = Flow[A, Unit]
+  type Pipeline            = Flow[Unit, Unit]
+
+  def execute(pipeline: Pipeline): Task[Unit] = ???
+
 }
