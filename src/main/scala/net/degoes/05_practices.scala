@@ -111,9 +111,9 @@ object ui_components {
    * domain with elements, constructors, and composable operators.
    */
   trait Turtle { self =>
-    def turnLeft(): Unit
+    def turnLeft(degrees: Int): Unit
 
-    def turnRight(): Unit
+    def turnRight(degrees: Int): Unit
 
     def goForward(): Unit
 
