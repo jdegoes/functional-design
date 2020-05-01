@@ -47,7 +47,7 @@ object education_final {
     def +(that: Quiz2): Quiz2 = ???
 
     /**
-     * EXERCISE 3
+     * EXERCISE 2
      *
      * Add a unary operator `bonus` that marks this quiz as a bonus quiz. Model
      * this as pure data using a constructor for Quiz in the companion object.
@@ -59,7 +59,7 @@ object education_final {
   }
 
   /**
-   * EXERCISE 5
+   * EXERCISE 3
    *
    * Implement an interpreter for the `Quiz` model that translates it into
    * the interactive console operations that it describes, returning a
