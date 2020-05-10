@@ -175,7 +175,7 @@ object etl {
      * EXERCISE 4
      *
      * Add a `merge` operator that models the merge of the output of this
-     * pipeline with the output of the specified pipeline.
+     * pipeline with the input of the specified pipeline.
      */
     def merge(that: Pipeline): Pipeline = ???
 
