@@ -384,7 +384,7 @@ object education {
   }
 
   final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) {
-    def totalPoints: Int = correctPoints + wrongPoints
+    def totalPoints: Int = correctPoints - wrongPoints
 
     def toBonus: QuizResult = QuizResult(0, bonusPoints + correctPoints, 0, Vector.empty)
 
