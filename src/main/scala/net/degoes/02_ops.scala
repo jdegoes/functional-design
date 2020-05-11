@@ -374,13 +374,13 @@ object education {
   sealed trait Question[A] {
     def question: String
 
-    def checker: Answer[A]
+    def checker: Checker[A]
   }
   object Question {
-    final case class Text(question: String, checker: Answer[String]) extends Question[String]
-    final case class MultipleChoice(question: String, choices: Vector[String], checker: Answer[Int])
+    final case class Text(question: String, checker: Checker[String]) extends Question[String]
+    final case class MultipleChoice(question: String, choices: Vector[String], checker: Checker[Int])
         extends Question[Int]
-    final case class TrueFalse(question: String, checker: Answer[Boolean]) extends Question[Boolean]
+    final case class TrueFalse(question: String, checker: Checker[Boolean]) extends Question[Boolean]
   }
 
   final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) {
@@ -433,15 +433,15 @@ object education {
     def conditional(cutoff: Int)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
   }
   object Quiz {
-    private def grade[A](f: String => A, grader: Answer[A]): QuizResult =
+    private def grade[A](f: String => A, checker: Checker[A]): QuizResult =
       scala.util.Try {
-        val answer = f(scala.io.StdIn.readLine())
+        val submittedAnswer = f(scala.io.StdIn.readLine())
 
-        grader.isCorrect(answer) match {
-          case Left(string)  => QuizResult(0, 0, grader.points, Vector(string))
-          case Right(string) => QuizResult(grader.points, 0, 0, Vector.empty)
+        checker.isCorrect(submittedAnswer) match {
+          case Left(string)  => QuizResult(0, 0, checker.points, Vector(string))
+          case Right(string) => QuizResult(checker.points, 0, 0, Vector.empty)
         }
-      }.getOrElse(QuizResult(0, 0, grader.points, Vector("The format of your answer was not recognized")))
+      }.getOrElse(QuizResult(0, 0, checker.points, Vector("The format of your answer was not recognized")))
 
     def apply[A](question: Question[A]): Quiz =
       Quiz { () =>
@@ -470,17 +470,17 @@ object education {
     def empty: Quiz = ???
   }
 
-  final case class Answer[-A](points: Int, isCorrect: A => Either[String, Unit])
-  object Answer {
-    def isTrue(points: Int): Answer[Boolean] = Answer(points, if (_) Right(()) else Left("The correct answer is true"))
-    def isFalse(points: Int): Answer[Boolean] =
-      Answer(points, v => if (!v) Right(()) else Left("The correct answer is false"))
+  final case class Checker[-A](points: Int, isCorrect: A => Either[String, Unit])
+  object Checker {
+    def isTrue(points: Int): Checker[Boolean] = Checker(points, if (_) Right(()) else Left("The correct answer is true"))
+    def isFalse(points: Int): Checker[Boolean] =
+      Checker(points, v => if (!v) Right(()) else Left("The correct answer is false"))
 
-    def isMultipleChoice(points: Int)(choiceNumber: Int): Answer[Int] =
-      Answer(points, v => if (v == choiceNumber) Right(()) else Left(s"The correct answer is ${choiceNumber}"))
+    def isMultipleChoice(points: Int)(choiceNumber: Int): Checker[Int] =
+      Checker(points, v => if (v == choiceNumber) Right(()) else Left(s"The correct answer is ${choiceNumber}"))
 
-    def isText(points: Int)(text: String): Answer[String] =
-      Answer(points, v => if (v == text) Right(()) else Left(s"The correct answer is ${text}"))
+    def isText(points: Int)(text: String): Checker[String] =
+      Checker(points, v => if (v == text) Right(()) else Left(s"The correct answer is ${text}"))
   }
 
   /**
@@ -491,5 +491,5 @@ object education {
    * to a simpler bonus question with fewer bonus points.
    */
   lazy val exampleQuiz: Quiz =
-    Quiz(Question.TrueFalse("Is coffee the best hot beverage on planet earth?", Answer.isTrue(10)))
+    Quiz(Question.TrueFalse("Is coffee the best hot beverage on planet earth?", Checker.isTrue(10)))
 }
