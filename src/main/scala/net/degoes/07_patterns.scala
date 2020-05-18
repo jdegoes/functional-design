@@ -28,9 +28,9 @@ object binary_values {
      *
      * for all `a`, `b`, `c`.
      */
-    type SomeType
+    type SomeType = Int
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType = left + right
   }
 
   object Exercise2 {
@@ -47,9 +47,9 @@ object binary_values {
      *
      * for all `a`, `b`, `c`.
      */
-    type SomeType
+    type SomeType = Nothing
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType =  left
   }
 
   object Exercise3 {
@@ -66,9 +66,9 @@ object binary_values {
      *
      * for all `a`, `b`.
      */
-    type SomeType
+    type SomeType = Boolean
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType =  left || right
   }
 
   object Exercise4 {
@@ -85,9 +85,9 @@ object binary_values {
      *
      * for all `a`, `b`.
      */
-    type SomeType
+    type SomeType = Int
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType = left + right
   }
 
   object Exercise5 {
@@ -101,9 +101,9 @@ object binary_values {
      * combine two queries into one query, such that both results would
      * be queried when the model is executed.
      */
-    type SomeType
+    type SomeType = Set[Int]
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType = left union right
   }
 
   object Exercise6 {
