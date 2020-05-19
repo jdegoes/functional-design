@@ -7,15 +7,17 @@ package net.degoes
  * constructors and operators:
  *
  * 1. Using a function or interface, whose methods execute the solution. This is
- *    sometimes called the "final" encoding. It's a direct, "executable" encoding
- *    of a domain. If some functional domain is modeled with a class or case
- *    class, or an open trait that is implemented by classes, then it's
- *    probably a final encoding.
+ *    called the "executable" encoding in this course. It's a direct, executable
+ *    encoding of a domain. If some functional domain is modeled with a class
+ *    or case class, or an open trait that is implemented by classes, then it's
+ *    probably an executable encoding.
  *
  * 2. Using a pure data structure, which declaratively describes the solution, but
- *    which does not perform the solution. It's an indirect, "declarative"
+ *    which does not perform the solution. It's an abstract, "declarative"
  *    encoding of a domain. If some functional domain type is modeled with a
- *    sealed trait, then it's probably an initial encoding.
+ *    sealed trait, then it's probably an abstract encoding, where the subtypes
+ *    of the sealed trait model individual operations and constructors in the
+ *    domain.
  *
  * In the second encoding, a so-called "executor" or "interpreter" or "compiler"
  * translates the data structure, which merely models a solution, into either
@@ -33,7 +35,7 @@ package net.degoes
  * Consider a console-based educational application that tests the user's
  * knowledge of key concepts.
  */
-object education_final {
+object education_executable {
   import education._
 
   sealed trait Quiz2 { self =>
@@ -340,14 +342,15 @@ object ecommerce_marketing {
     final case class DateTime(value: java.time.OffsetDateTime) extends Value
   }
 
-  object initial_encoding {
+  object abstract_encoding {
     sealed trait Pattern { self =>
       def +(that: Pattern): Pattern = Pattern.Sequence(self, that)
 
       def repeat(min: Option[Int], max: Option[Int]): Pattern = Pattern.Repeat(self, min, max)
     }
     object Pattern {
-      final case class HasAttribute(attr: Attribute)                                extends Pattern
+
+      case class HasAttribute(attr: Attribute)                                      extends Pattern
       final object HasAnyAttribute                                                  extends Pattern
       final case class HasValue(attr: Attribute, value: Value)                      extends Pattern
       final case class Sequence(first: Pattern, second: Pattern)                    extends Pattern
@@ -392,12 +395,13 @@ object ecommerce_marketing {
   /**
    * EXERCISE 1
    *
-   * Develop a final encoding of the pattern matcher. Instead of having an ADT
-   * to represent a pattern, and then interpreting that on a user history to see
-   * if there is a match, you will represent a pattern as a function or an
-   * interface that is capable of testing the user history for a match.
+   * Develop an executable encoding of the pattern matcher. Instead of having
+   * an ADT to represent a pattern, and then interpreting that on a user
+   * history to see if there is a match, you will represent a pattern as a
+   * function or an interface that is capable of testing the user history for
+   * a match.
    */
-  object final_encoding {
+  object executable_encoding {
     type Pattern
   }
 }

@@ -13,21 +13,23 @@ package net.degoes
  *
  * The choice of primitives determine how powerful and expressive a domain
  * model is. Some choices lead to weaker models, and others, to more powerful
- * models. Power is not always a good thing; constraining the power of a model
+ * models. Power is not always a good thing: constraining the power of a model
  * allows more efficient and more feature-full execution.
  *
  * Derived operators and constructors bridge the gap from the domain, to common
  * problems that a user of the domain has to solve, improving productivity.
  *
  * In many domains, there exist many potential choices for the set of primitive
- * operators and constructors. Not all choices are equally good.
+ * operators and constructors. But not all choices are equally good.
  *
  * The best primitives are:
  *
  * * Composable, to permit a lot of power in a small, reasonable package
- * * Expressive, to solve the full range of solutions
+ * * Expressive, to solve the full range of problems in the domain
  * * Orthogonal, such that no primitive provides the capabilities of any other
- *   (implies minimalism)
+ *
+ * Orthogonality also implies minimalism, which means the primitives are the
+ * smallest set of orthogonal primitives that exist.ww
  *
  */
 
@@ -120,29 +122,5 @@ object ui_components {
     def goBackward(): Unit
 
     def draw(): Unit
-  }
-
-  /**
-   * EXERCISE 2
-   *
-   * The following API is not composable—there is no domain. Introduce a
-   * domain with elements, constructors, and composable operators.
-   */
-  trait WidgetFramework {
-    type Widget[+State]
-
-    def createContainer: Widget[Any]
-
-    def createTextField(name: String, chars: Int): Widget[String]
-
-    def getState[A](widget: Widget[A]): A
-
-    def installChild(container: Widget[Any], child: Widget[Any]): Unit
-
-    def createButton(label: String, onClick: Widget[Unit] => Unit): Widget[Unit]
-
-    def displayWidget(widget: Widget[Any]): Unit
-
-    def destroyWidget(widget: Widget[Any]): Unit
   }
 }

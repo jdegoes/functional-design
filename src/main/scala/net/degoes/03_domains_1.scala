@@ -125,12 +125,40 @@ object spreadsheet {
  * ETL - EXERCISE SET 2
  *
  * Consider an application designed to extract, transform, and load data.
- *
- * NOTE: In these exercises, you will only create a data model to describe
- * ETL workflows. You will not actually implement any ETL. Such a data
- * model would need to be "executed" in order to be useful.
  */
 object etl {
+  import scala.util._
+
+  /**
+   * Represents a row of data.
+   */
+  final case class DataRow(row: Map[String, DataValue]) {
+    def delete(name: String): DataRow = DataRow(row - name)
+
+    def rename(oldName: String, newName: String): DataRow =
+      DataRow(row.get(oldName).fold(row)(value => (row - oldName).updated(newName, value)))
+  }
+
+  /**
+   * Represents a stream of data.
+   */
+  final case class DataStream(foreach: (Try[DataRow] => Unit) => Unit) { self =>
+    def delete(name: String): DataStream = map(_.delete(name))
+
+    def orElse(that: => DataStream): DataStream =
+      DataStream { callback =>
+        self.foreach {
+          case Failure(exception) => that.foreach(callback)
+          case x                  => callback(x)
+        }
+      }
+
+    def map(f: DataRow => DataRow): DataStream =
+      DataStream(callback => self.foreach(a => callback(a.map(f))))
+
+    def rename(oldName: String, newName: String): DataStream =
+      self.map(_.rename(oldName, newName))
+  }
 
   /**
    * EXERCISE 1
@@ -138,6 +166,9 @@ object etl {
    * Design a data type that models sources and sinks in an ETL pipeline. Assume
    * your business requires you to extract data from (and load data to) FTP sites,
    * URLs, AWS S3 buckets, and databases described by JDBC connection strings.
+   *
+   * Also mock out, but do not implement, a method on each repository type called
+   * `load`, which returns a `DataStream`.
    */
   type DataRepo
 
@@ -153,23 +184,23 @@ object etl {
    * EXERCISE 3
    *
    * Design a data type that models a value. Every value should have a `DataType`
-   * that identifies its type (string, numeric, or data/time).
+   * that identifies its type (string, numeric, or data/time), and a `coerce` method
+   * to coerce the value into another type.
+   *
+   * Be sure to model null, string, and integer, at the very least!
    */
   sealed trait DataValue {
     def dataType: DataType
+
+    def coerce(otherType: DataType): Option[DataValue]
   }
 
   /**
    * `Pipeline` is a data type that models a transformation from an input data
    * set into an output data step, as a series of one or more individual
    * operations.
-   *
-   * NOTE: This data type will purely *describe* steps in a pipeline. It will
-   * not actually perform these steps. Separately, you could implement a
-   * function to execute a pipeline by performing the steps it models, but
-   * this task is beyond the scope of these exercises.
    */
-  sealed trait Pipeline { self =>
+  final case class Pipeline(run: () => DataStream) { self =>
 
     /**
      * EXERCISE 4
@@ -227,7 +258,7 @@ object etl {
   }
 
   /**
-   * EXERCISE 10
+   * EXERCISE 11
    *
    * Create a pipeline that models extracts data from a URL, replacing all null
    * "age" columns with "0" as the default age, which renames a column "fname"
@@ -235,82 +266,6 @@ object etl {
    * integer type.
    */
   lazy val pipeline: Pipeline = ???
-}
-
-/**
- * ANALYTICS - EXERCISE SET 3
- *
- * Consider a domain where you are doing in-memory analytics on values of type
- * `Double`. Mainly, this involves adding, multiplying, and so forth, on
- * "pages" of columnar data. A page could contain a certain number of "rows"
- * of Double data.
- */
-object analytics {
-
-  /**
-   * EXERCISE 1
-   *
-   * Design a data type that holds a "page" worth of columnar `Double` data.
-   * For efficiency, the page should be stored inside an `Array[Double]`, but
-   * not exposed outside the data type.
-   */
-  final case class ColumnarPage() { self =>
-
-    /**
-     * EXERCISE 2
-     *
-     * Add an extend operation that extends the length of the page to the
-     * specified length, by using "wraparound" semantics.
-     */
-    def ensureLength(n: Int): ColumnarPage = ???
-
-    /**
-     * EXERCISE 3
-     *
-     * Add a `+` operation that adds one page with another page by aligning the
-     * rows in the two column pages and performing the operation pairwise. If
-     * one page is shorter than the other, then use "wraparound" semantics for
-     * the smaller page.
-     */
-    def +(that: ColumnarPage): ColumnarPage = ???
-
-    /**
-     * EXERCISE 4
-     *
-     * Add a `*` operation that multiplies one page with another page by
-     * aligning the rows in the two column pages and performing the operation
-     * pairwise. If one page is shorter than the other, then use "wraparound"
-     * semantics for the smaller page.
-     */
-    def *(that: ColumnarPage): ColumnarPage = ???
-
-    /**
-     * EXERCISE 5
-     *
-     * Add a `-` operation that subtracts one page from another page by aligning
-     * the rows in the two column pages and performing the operation pairwise.
-     * If one page is shorter than the other, then use "wraparound" semantics
-     * for the smaller page.
-     */
-    def -(that: ColumnarPage): ColumnarPage = ???
-
-    /** EXERCISE 6
-     *
-     * Add a `reduce` operation that reduces the entire page down to a page
-     * with only a single entry by using the user-specified combining function.
-     */
-    def reduce(f: (Double, Double) => Double): ColumnarPage = ???
-  }
-  object ColumnarPage {
-
-    /**
-     * EXERCISE 6
-     *
-     * Add a constructor for ColumnarPage that converts the specified values
-     * into a page.
-     */
-    def apply(doubles: Double*): ColumnarPage = ???
-  }
 }
 
 /**
@@ -336,18 +291,15 @@ object pricing_fetcher {
     case object Saturday  extends DayOfWeek
   }
 
+  final case class Time(minuteOfHour: Int, hourOfDay: Int, dayOfWeek: DayOfWeek, weekOfMonth: Int, monthOfYear: Int)
+
   /**
-   * EXERCISE 1
-   *
-   * Create a data type `Schedule` that models a schedule.
-   *
-   * NOTE: It is acceptable for this data type to purely describe a schedule.
-   * Separately, you could implement a function to execute a schedule, but
-   * this task is beyond the scope of these exercises.
+   * `Schedule` is a data type that models a schedule as a simple function,
+   * which specifies whether or not it is time to perform a fetch.
    */
-  sealed trait Schedule {
+  final case class Schedule(fetchNow: Time => Boolean) {
     /*
-     * EXERCISE 2
+     * EXERCISE 1
      *
      * Create an operator for schedule that allows composing two schedules to
      * yield the union of those schedules. That is, the fetch will occur
@@ -356,31 +308,27 @@ object pricing_fetcher {
     def union(that: Schedule): Schedule = ???
 
     /**
-     * EXERCISE 3
+     * EXERCISE 2
      *
-     * Create an operator for schedule that allows repeating one schedule inside
-     * another schedule. For example, `first.interleave(second)` would at every fetch of
-     * of the first schedule, switch over and fetch according to the second schedule,
-     * and then resume according to the first schedule.
-     *
-     * NOTE: It is acceptable to only model the solution with a data constructor.
+     * Create an operator for schedule that allows composing two schedules to
+     * yield the intersection of those schedules. That is, the fetch will occur
+     * only when both of the schedules would have performed a fetch.
      */
-    def interleave(that: Schedule): Schedule = ???
+    def intersection(that: Schedule): Schedule = ???
 
     /**
-     * EXERCISE 4
+     * EXERCISE 3
      *
-     * Create a unary operator that models a schedule repeat only a fixed number
-     * of times, e.g. 10 times.
-     *
-     * NOTE: It is acceptable to only model the solution with a data constructor.
+     * Create a unary operator that returns a schedule that will never fetch
+     * when the original schedule would fetch, and will always fetch when the
+     * original schedule would not fetch.
      */
-    def times(times: Int): Schedule = ???
+    def negate: Schedule = ???
   }
   object Schedule {
 
     /**
-     * EXERCISE 5
+     * EXERCISE 4
      *
      * Create a constructor for Schedule that models fetching on specific weeks
      * of the month.
@@ -388,30 +336,32 @@ object pricing_fetcher {
     def weeks(weeks: Int*): Schedule = ???
 
     /**
-     * EXERCISE 6
+     * EXERCISE 5
      *
      * Create a constructor for Schedule that models fetching on specific days
      * of the week.
      */
-    def daysOfTheWeek(daysOfTheWeek: Int*): Schedule = ???
-
-    /** EXERCISE 7
-     *
-     * Create a constructor for Schedule that models fetching on specific hours.
-     */
-    def hours(hours: Int*): Schedule = ???
+    def daysOfTheWeek(daysOfTheWeek: DayOfWeek*): Schedule = ???
 
     /**
-     * EXERCISE 8
+     * EXERCISE 6
+     *
+     * Create a constructor for Schedule that models fetching on specific
+     * hours of the day.
+     */
+    def hoursOfTheDay(hours: Int*): Schedule = ???
+
+    /**
+     * EXERCISE 7
      *
      * Create a constructor for Schedule that models fetching on specific minutes
      * of the hour.
      */
-    def minutes(minutes: Int*): Schedule = ???
+    def minutesOfTheHour(minutes: Int*): Schedule = ???
   }
 
   /**
-   * EXERCISE 9
+   * EXERCISE 8
    *
    * Create a schedule that repeats every Wednesday, at 6:00 AM and 12:00 PM,
    * and at 5:30, 6:30, and 7:30 every Thursday.

@@ -6,8 +6,8 @@ package net.degoes
  * and they are transformed and composed using _operators_.
  *
  * Operators come in two primary flavors: unary operators, which are the ones
- * that transform solutions into other solutions values with desired 
- * properties; and binary operators, which combine two solutions for 
+ * that transform solutions into other solutions values with desired
+ * properties; and binary operators, which combine two solutions for
  * subproblems into a solution for a larger problem.
  *
  * Composable operators accept and return similar types, which allows them
@@ -472,7 +472,8 @@ object education {
 
   final case class Checker[-A](points: Int, isCorrect: A => Either[String, Unit])
   object Checker {
-    def isTrue(points: Int): Checker[Boolean] = Checker(points, if (_) Right(()) else Left("The correct answer is true"))
+    def isTrue(points: Int): Checker[Boolean] =
+      Checker(points, if (_) Right(()) else Left("The correct answer is true"))
     def isFalse(points: Int): Checker[Boolean] =
       Checker(points, v => if (!v) Right(()) else Left("The correct answer is false"))
 

@@ -4,12 +4,13 @@ package net.degoes
  * INTRODUCTION
  *
  * In Functional Design, the most powerful approaches utilize GADTs to model
- * solutions to the domain problem, exposing a minimal set of constructors
- * and operators that have the full level of power required by the domain,
- * but no more; and which are both minimal and orthogonal.
+ * solutions to the domain problem, exposing a composable, expressive, and
+ * orthogonal set of primitive constructors and operators, upon which they
+ * add derived constructors and operators to bridge gaps between the foundation
+ * and common problems in the domain.
  *
  * In this section, you'll tie together everything you've learned to develop
- * hands-on skills in applied functional design.
+ * hands-on skills in applied functional design.w
  */
 
 /**
@@ -121,7 +122,14 @@ object loyalty_program {
      * calculation produce booleans, and which models the boolean conjunction
      * ("and") of the two boolean values.
      */
-    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = ???
+    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Boolean:
+      val self1: RuleCalculation[Boolean] = self.widen[Boolean]
+
+      val _ = self1 // DELETE ME
+
+      ???
+    }
 
     /**
      * EXERCISE 5
@@ -130,7 +138,14 @@ object loyalty_program {
      * calculation produce booleans, and which models the boolean disjunction
      * ("or") of the two boolean values.
      */
-    def ||(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = ???
+    def ||(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Boolean:
+      val self1: RuleCalculation[Boolean] = self.widen[Boolean]
+
+      val _ = self1 // DELETE ME
+
+      ???
+    }
 
     /**
      * EXERCISE 6
@@ -138,7 +153,14 @@ object loyalty_program {
      * Add an operator `negate` that applies only with this calculation produces
      * a boolean, and which models the boolean negation of this value.
      */
-    def negate(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = ???
+    def negate(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Boolean:
+      val self1: RuleCalculation[Boolean] = self.widen[Boolean]
+
+      val _ = self1 // DELETE ME
+
+      ???
+    }
 
     /**
      * EXERCISE 7
@@ -148,8 +170,14 @@ object loyalty_program {
      * between the two amounts, which yields a boolean indicating if the
      * relation holds.
      */
-    def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
-      RuleCalculation.GreaterThan(self.widen[Currency](ev), that)
+    def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Currency:
+      val self1: RuleCalculation[Currency] = self.widen[Currency]
+
+      val _ = self1 // DELETE ME
+
+      ???
+    }
 
     /**
      * EXERCISE 8
@@ -159,8 +187,16 @@ object loyalty_program {
      * between the two amounts, which yields a boolean indicating if the
      * relation holds.
      */
-    def >=[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    def >=[Currency: Numeric](
+      that: RuleCalculation[Currency]
+    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Currency:
+      val self1: RuleCalculation[Currency] = self.widen[Currency]
+
+      val _ = self1 // DELETE ME
+
       ???
+    }
 
     /**
      * EXERCISE 9
@@ -170,8 +206,14 @@ object loyalty_program {
      * between the two amounts, which yields a boolean indicating if the
      * relation holds.
      */
-    def <[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    def <[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Currency:
+      val self1: RuleCalculation[Currency] = self.widen[Currency]
+
+      val _ = self1 // DELETE ME
+
       ???
+    }
 
     /**
      * EXERCISE 10
@@ -181,14 +223,20 @@ object loyalty_program {
      * between the two amounts, which yields a boolean indicating if the
      * relation holds.
      */
-    def <=[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    def <=[Currency: Numeric](
+      that: RuleCalculation[Currency]
+    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Currency:
+      val self1: RuleCalculation[Currency] = self.widen[Currency]
+
+      val _ = self1 // DELETE ME
+
       ???
+    }
 
     def widen[B](implicit ev: A <:< B): RuleCalculation[B] = RuleCalculation.Widen(self)(ev)
   }
   object RuleCalculation {
-    final case class GreaterThan[A: Numeric](left: RuleCalculation[A], right: RuleCalculation[A])
-        extends RuleCalculation[Boolean]
     final case class Widen[A, B](rc: RuleCalculation[A])(implicit val ev: A <:< B) extends RuleCalculation[B]
 
     /**
@@ -256,8 +304,14 @@ object loyalty_program {
    */
   def ruleSet: RuleSet = ???
 
+  /**
+   * Example of running a rule set on the history of a user to produce system actions.
+   */
   def run(history: List[UserAction], ruleSet: RuleSet): List[SystemAction] = ???
 
+  /**
+   * Example of describing a rule set in a human-readable form.
+   */
   def describe(ruleSet: RuleSet): String = ???
 }
 
@@ -478,59 +532,45 @@ object input_validation {
 }
 
 /**
- * DATA PROCESSING - EXERCISE SET 5
+ * GRADUATION PROJECT
  *
  * Consider a domain where data must be loaded from various sources, processed
  * through a flexible graph of components.
  */
 object data_processing {
   sealed trait Schema { self =>
-    def & (that: Schema): Schema = Schema.Intersect(self, that)
+    def &(that: Schema): Schema = Schema.Intersect(self, that)
 
-    def | (that: Schema): Schema = Schema.Union(self, that)
+    def |(that: Schema): Schema = Schema.Union(self, that)
 
-    def ?? (description: String): Schema = Schema.Described(description, self)
+    def ??(description: String): Schema = Schema.Described(description, self)
   }
   object Schema {
-    case object Null extends Schema 
-    case object Bool extends Schema 
-    case object Number extends Schema 
-    case object Str extends Schema 
-    case object Date extends Schema 
-    case object DateTime extends Schema
-    final case class Described(description: String, schema: Schema) extends Schema 
-    final case class Field(key: String, value: Schema) extends Schema 
-    final case class Intersect(left: Schema, right: Schema) extends Schema
-    final case class Union(left: Schema, right: Schema) extends Schema
-    final case class Sequence(elementSchema: Schema) extends Schema
+    case object Null                                                extends Schema
+    case object Bool                                                extends Schema
+    case object Number                                              extends Schema
+    case object Str                                                 extends Schema
+    case object Date                                                extends Schema
+    case object DateTime                                            extends Schema
+    final case class Described(description: String, schema: Schema) extends Schema
+    final case class Field(key: String, value: Schema)              extends Schema
+    final case class Intersect(left: Schema, right: Schema)         extends Schema
+    final case class Union(left: Schema, right: Schema)             extends Schema
+    final case class Sequence(elementSchema: Schema)                extends Schema
 
     def field(name: String, value: Schema): Schema = Field(name, value)
 
-    lazy val personSchema = 
-      field("name", Str) & 
-      field("age", Number) & 
-      field("address", Str)
-      field("manager", personSchema)
+    lazy val personSchema =
+      field("name", Str) &
+        field("age", Number) &
+        field("address", Str)
+    field("manager", personSchema)
   }
 
-  sealed trait Expr
-  object Expr {
-
-    // Record deconstruction & reconstruction 
-    final case class ProjectKey(name: String) extends Expr
-    final case class MakeField(name: String, expr: Expr) extends Expr
-    final case class Intersect(left: Expr, right: Expr) extends Expr
-
-    // Union deconstruction & reconstruction
-    final case class Union(left: Expr, right: Expr) extends Expr
-    final case class ProjectStr(expr: Expr) extends Expr
-    final case class ProjectBool(expr: Expr) extends Expr
-    final case class ProjectNumber(expr: Expr) extends Expr
-
-    final case class Add(left: Expr, right: Expr) extends Expr
-  }
-
-  def inferSchema(sourceSchema: Schema, mapping: Expr): Schema = ???
-
-  // def diffSchema(left: Schema, right: Schema): ???
+  /**
+   * Design a data type that can model schema transformations, as well as value
+   * transformations (e.g. replacing nulls with values, replacing one type of
+   * value with another type.
+   */
+  sealed trait Transformation
 }

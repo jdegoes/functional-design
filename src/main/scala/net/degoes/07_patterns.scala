@@ -6,7 +6,7 @@ package net.degoes
  * In Functional Design, operators that transform and compose values in a
  * domain often fall into pre-existing patterns.
  *
- * In this section, you'll learn to be able to identify these patterns.
+ * In this section, you'll learn to identify these patterns.
  *
  */
 
