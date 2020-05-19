@@ -484,25 +484,53 @@ object input_validation {
  * through a flexible graph of components.
  */
 object data_processing {
-  import zio._
+  sealed trait Schema { self =>
+    def & (that: Schema): Schema = Schema.Intersect(self, that)
 
-  type Unknown
+    def | (that: Schema): Schema = Schema.Union(self, that)
 
-  sealed trait Expr[-A, +B]
-  object Expr {}
+    def ?? (description: String): Schema = Schema.Described(description, self)
+  }
+  object Schema {
+    case object Null extends Schema 
+    case object Bool extends Schema 
+    case object Number extends Schema 
+    case object Str extends Schema 
+    case object Date extends Schema 
+    case object DateTime extends Schema
+    final case class Described(description: String, schema: Schema) extends Schema 
+    final case class Field(key: String, value: Schema) extends Schema 
+    final case class Intersect(left: Schema, right: Schema) extends Schema
+    final case class Union(left: Schema, right: Schema) extends Schema
+    final case class Sequence(elementSchema: Schema) extends Schema
 
-  sealed trait SourceDefinition
-  object SourceDefinition {}
+    def field(name: String, value: Schema): Schema = Field(name, value)
 
-  def load(source: SourceDefinition): Source[Unknown] = ???
+    lazy val personSchema = 
+      field("name", Str) & 
+      field("age", Number) & 
+      field("address", Str)
+      field("manager", personSchema)
+  }
 
-  sealed trait Flow[-Input, +Output]
+  sealed trait Expr
+  object Expr {
 
-  type Transformer[-A, +B] = Flow[A, B]
-  type Source[+A]          = Flow[Unit, A]
-  type Sink[-A]            = Flow[A, Unit]
-  type Pipeline            = Flow[Unit, Unit]
+    // Record deconstruction & reconstruction 
+    final case class ProjectKey(name: String) extends Expr
+    final case class MakeField(name: String, expr: Expr) extends Expr
+    final case class Intersect(left: Expr, right: Expr) extends Expr
 
-  def execute(pipeline: Pipeline): Task[Unit] = ???
+    // Union deconstruction & reconstruction
+    final case class Union(left: Expr, right: Expr) extends Expr
+    final case class ProjectStr(expr: Expr) extends Expr
+    final case class ProjectBool(expr: Expr) extends Expr
+    final case class ProjectNumber(expr: Expr) extends Expr
 
+    final case class Add(left: Expr, right: Expr) extends Expr
+  }
+
+  def inferSchema(sourceSchema: Schema, mapping: Expr): Schema = ???
+
+  // def diffSchema(left: Schema, right: Schema): ???
 }

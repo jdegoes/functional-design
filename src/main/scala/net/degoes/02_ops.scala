@@ -3,12 +3,12 @@ package net.degoes
  * INTRODUCTION
  *
  * In Functional Design, immutable values often model solutions to a problem,
- * and they are transformed and composed using operators.
+ * and they are transformed and composed using _operators_.
  *
  * Operators come in two primary flavors: unary operators, which are the ones
- * that transform solutions into solutions values with desired properties; and
- * binary operators, which combine two solutions for subproblems into a
- * solution for a larger problem.
+ * that transform solutions into other solutions values with desired 
+ * properties; and binary operators, which combine two solutions for 
+ * subproblems into a solution for a larger problem.
  *
  * Composable operators accept and return similar types, which allows them
  * to be used repeatedly. For example, the `+` binary operator for integers
