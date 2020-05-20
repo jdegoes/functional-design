@@ -156,7 +156,7 @@ object parser {
     parser match {
       case OneChar =>
         input.headOption
-          .map((a: Char) => Right(input -> a))
+          .map((a: Char) => Right(input.drop(1) -> a))
           .getOrElse(Left("The input to the parser has no remaining characters"))
     }
 }
