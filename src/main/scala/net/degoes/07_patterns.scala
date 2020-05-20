@@ -80,7 +80,7 @@ object binary_values {
      * function in such a way that:
      *
      * {{{
-     * compose(a, b) == compose(b, c)
+     * compose(a, b) == compose(b, a)
      * }}}
      *
      * for all `a`, `b`.
