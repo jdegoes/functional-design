@@ -181,7 +181,7 @@ object contact_processing {
 
     def relocate(column: String, j: Int): Option[ContactsCSV] =
       columnOf(column).flatMap { i =>
-        if (i < content.length && j < content.length)
+        if (i < columnNames.length && j < columnNames.length)
           schema
             .relocate(i, j)
             .map(schema =>
@@ -202,7 +202,7 @@ object contact_processing {
         index1 <- columnOf(column1)
         index2 <- columnOf(column2)
         column = content.map(row => f(row(index1), row(index2)))
-      } yield add(newColumn, column).delete(column1).delete(column1)
+      } yield add(newColumn, column).delete(column1).delete(column2)
   }
 
   sealed trait MappingResult[+A]
