@@ -24,8 +24,21 @@ package net.degoes
  * executable code or into another lower-level domain, which provides the
  * capabilities modeled by the functional domain.
  *
- * These two methods are equivalent; legacy code prefers (1), while often (2)
- * can be more useful, especially for new code.
+ * Executable encodings are "open": anyone can add new constructors and 
+ * operators, without updating existing code. On the other hand, executable 
+ * encodings are not "introspectable": because they are not data, but rather,
+ * opaque executable machinery, they cannot be serialized, optimized, or 
+ * converted to other encodings.
+ * 
+ * Abstract encodings are "introspectable": because they are pure data, they 
+ * can be serialized, optimized, and converted to other encodings, assuming
+ * their component parts have the same properties (not all abstract encodings
+ * do; if you embed a function inside an abstract encoding, it's becomes 
+ * opaque). On the other hand, abstract encodings are "closed": no one can add
+ * new constructors or operators, without updating existing code.
+ * 
+ * Legacy code prefers executable encodings; while many benefits of Functional
+ * Design can be seen best using abstract encodings.
  *
  */
 
