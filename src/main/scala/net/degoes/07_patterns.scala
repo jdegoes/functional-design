@@ -101,9 +101,28 @@ object binary_values {
      * combine two queries into one query, such that both results would
      * be queried when the model is executed.
      */
-    type SomeType = Set[Int]
+    // Phil tries this but this is not good because we lose identity of each A and B after
+    // the combination by losing the nesting effect, how things got combined.
+    sealed trait SomeType
 
-    def compose(left: SomeType, right: SomeType): SomeType = left union right
+    case class SomeValue(a: Int) extends SomeType
+    case class AndSomeType(as: List[SomeType]) extends SomeType
+
+    def compose(left: SomeType, right: SomeType): SomeType =
+      (left, right) match {
+        case ( SomeValue(a), SomeValue(b)) => AndSomeType(List(SomeValue(a), SomeValue(b)))
+        case ( AndSomeType(as), SomeValue(b)) => AndSomeType(SomeValue(b) :: as )
+        case ( SomeValue(a), AndSomeType(bs)) => AndSomeType(SomeValue(a) :: bs)
+        case ( AndSomeType(as), AndSomeType(bs)) => AndSomeType(as ++ bs)
+      }
+
+    // John has
+    // sealed trait DeviceCommand
+    // object DeviceCommand {
+    // final case object Reboot extends DeviceCommand
+    // final case object UpgradeFirmware extends DeviceCommand
+    // final case class Both(a: DeviceCommand, b: DeviceCommand) extends DeviceCommand
+    // }
   }
 
   object Exercise6 {
@@ -129,9 +148,26 @@ object binary_values {
      * a data type that represents a query, then this `compose` could
      * model running one query, but if it fails, running another.
      */
-    type SomeType
+    type SomeType = Query
+     sealed trait Query
+     object Query {
+       final case class Race(first: Query, retry: Query) extends Query
+       final case class Primitive(sql: String) extends Query
+     }
+    // that's an interpreter
+//    def compose(left: SomeType, right: SomeType): SomeType =
+//      (left, right) match {
+//        case (l: Query.Primitive, r: Query.Primitive) =>
+//          if (l.sql < r.sql) l else r
+//        case (l: Query.Race, r: Query.Primitive) => compose(l.retry, r)
+//        case (l: Query.Primitive, r: Query.Race) => compose(l, r.first)
+//        case (l: Query.Race, r: Query.Race) => compose(l.first, r.retry)
+//      }
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def compose(left: SomeType, right: SomeType): SomeType =
+      Query.Race(left, right)
+
+    // John came up with Option[String] and orElse (Try would have worked but is evaluating...)
   }
 
   object Exercise8 {
