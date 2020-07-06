@@ -1,10 +1,10 @@
 package net.degoes
 
-object workspace {
+object welcome {
   //
   // Please join and say hello:
   //
-  // CHAT ROOM:  https://gitter.im/jdegoes/functional-scala
+  // CHAT ROOM: https://discord.gg/VYvFKC8
   //
   // Please git clone and build:
   //
@@ -12,7 +12,8 @@ object workspace {
   //
   // Daily Schedule:
   //
-  //    START :
-  //    LUNCH :
-  //    END   :
+  //    START  : 1:00 PM CET
+  //    BREAK  : 2:45 PM CET
+  //    RESUME : 3:15 PM CET
+  //    END    : 5:00 PM CET
 }

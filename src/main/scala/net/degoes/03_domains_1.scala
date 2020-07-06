@@ -39,7 +39,7 @@ object spreadsheet {
     def cols: Int
     def rows: Int
 
-    def valueAt(col: Int, row: Int): CellContents
+    def valueAt(col: Int, row: Int): CalculatedValue
 
     final def scan(range: Range): Stream[Cell] = {
       val minRow = range.minRow.getOrElse(0)
@@ -62,55 +62,55 @@ object spreadsheet {
     def row(i: Int): Range = Range(Some(i), Some(i), None, None)
   }
 
-  final case class Cell(col: Int, row: Int, contents: CellContents)
+  final case class Cell(col: Int, row: Int, contents: CalculatedValue)
 
-  sealed trait CellContents
-  object CellContents {
-    final case class Error(message: String) extends CellContents
-    final case class Str(value: String)     extends CellContents
-    final case class Dbl(value: Double)     extends CellContents
+  sealed trait Value
+  object Value {
+    final case class Error(message: String) extends Value
+    final case class Str(value: String)     extends Value
+    final case class Dbl(value: Double)     extends Value
+  }
+
+  /**
+   * EXERCISE 1
+   *
+   * Design a subtype of `Value` called `CalculatedValue`, which
+   * represents a value that is dynamically computed from a spreadsheet.
+   */
+  final case class CalculatedValue( /* ??? */ ) extends Value { self =>
 
     /**
-     * EXERCISE 1
+     * EXERCISE 2
      *
-     * Design a subtype of `CellContents` called `CalculatedValue`, which
-     * represents a value that is dynamically computed from a spreadsheet.
+     * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
+     * example, one operator could "negate" a double expression.
      */
-    final case class CalculatedValue() extends CellContents { self =>
+    def negate: CalculatedValue = ???
 
-      /**
-       * EXERCISE 2
-       *
-       * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
-       * example, one operator could "negate" a double expression.
-       */
-      def negate: CalculatedValue = ???
+    /**
+     * EXERCISE 3
+     *
+     * Add some operators to combine `CalculatedValue`. For example, one operator
+     * could sum two double expressions.
+     */
+    def sum(that: CalculatedValue): CalculatedValue = ???
+  }
+  object CalculatedValue {
 
-      /**
-       * EXERCISE 3
-       *
-       * Add some operators to combine `CalculatedValue`. For example, one operator
-       * could sum two double expressions.
-       */
-      def sum(that: CalculatedValue): CalculatedValue = ???
-    }
-    object CalculatedValue {
+    /**
+     * EXERCISE 4
+     *
+     * Add a constructor that makes an CalculatedValue from a Value.
+     */
+    def const(contents: Value): CalculatedValue = ???
 
-      /**
-       * EXERCISE 4
-       *
-       * Add a constructor that makes an CalculatedValue from a CellContents.
-       */
-      def const(contents: CellContents): CalculatedValue = ???
-
-      /**
-       * EXERCISE 5
-       *
-       * Add a constructor that provides access to the value of the
-       * specified cell, identified by col/row.
-       */
-      def at(col: Int, row: Int): CalculatedValue = ???
-    }
+    /**
+     * EXERCISE 5
+     *
+     * Add a constructor that provides access to the value of the
+     * specified cell, identified by col/row.
+     */
+    def at(col: Int, row: Int): CalculatedValue = ???
   }
 
   /**
@@ -132,17 +132,25 @@ object etl {
   /**
    * Represents a row of data.
    */
-  final case class DataRow(row: Map[String, DataValue]) {
+  final case class DataRow(row: Map[String, DataValue]) { self =>
     def delete(name: String): DataRow = DataRow(row - name)
+
+    def map(name: String)(f: PartialFunction[DataValue, DataValue]): DataRow =
+      row.get(name).fold(self)(v => f.lift(v).fold(self)(v => DataRow(row.updated(name, v))))
 
     def rename(oldName: String, newName: String): DataRow =
       DataRow(row.get(oldName).fold(row)(value => (row - oldName).updated(newName, value)))
+
+    def coerce(name: String, dtype: DataType): DataRow =
+      row.get(name).fold(self)(v => v.coerce(dtype).fold(self)(v => DataRow(row + (name -> v))))
   }
 
   /**
    * Represents a stream of data.
    */
   final case class DataStream(foreach: (Try[DataRow] => Unit) => Unit) { self =>
+    def coerce(name: String, dtype: DataType): DataStream = self.map(_.coerce(name, dtype))
+
     def delete(name: String): DataStream = map(_.delete(name))
 
     def orElse(that: => DataStream): DataStream =
@@ -155,6 +163,15 @@ object etl {
 
     def map(f: DataRow => DataRow): DataStream =
       DataStream(callback => self.foreach(a => callback(a.map(f))))
+
+    def mapColumn(name: String)(f: PartialFunction[DataValue, DataValue]): DataStream =
+      self.map(_.map(name)(f))
+
+    def merge(that: => DataStream): DataStream =
+      DataStream { callback =>
+        self.foreach(callback)
+        that.foreach(callback)
+      }
 
     def rename(oldName: String, newName: String): DataStream =
       self.map(_.rename(oldName, newName))
@@ -207,6 +224,13 @@ object etl {
      *
      * Add a `merge` operator that models the merge of the output of this
      * pipeline with the output of the specified pipeline.
+     *
+     * {{{
+     * Merge Associativity:  (p1 merge p2) merge p3 == p1 merge (p2 merge p3)
+     * Merge Identity:       p merge Pipeline.empty == Pipeline.empty merge p == p
+     * Merge Commutativity:  p1 merge p2 == p2 merge p1
+     * Merge Duplication:    ???
+     * }}}
      */
     def merge(that: Pipeline): Pipeline = ???
 
@@ -297,7 +321,7 @@ object pricing_fetcher {
    * `Schedule` is a data type that models a schedule as a simple function,
    * which specifies whether or not it is time to perform a fetch.
    */
-  final case class Schedule(fetchNow: Time => Boolean) {
+  final case class Schedule(fetchNow: Time => Boolean) { self =>
     /*
      * EXERCISE 1
      *

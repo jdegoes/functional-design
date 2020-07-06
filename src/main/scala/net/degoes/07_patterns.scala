@@ -531,7 +531,7 @@ object recipes {
     final case class Cinnamon(amount: Double) extends Ingredient
   }
 
-  sealed trait Recipe[+A] {
+  sealed trait Recipe[+A] { self =>
 
     /**
      * EXERCISE 1
@@ -566,11 +566,17 @@ object recipes {
      * recipes that use your new operation.
      */
     def flatMap[B](f: A => Recipe[B]): Recipe[B] = ???
+
+    def bake(temp: Int, time: Int): Recipe[Baked[A]] = Recipe.Bake(self, temp, time)
   }
   object Recipe {
     case object Disaster                                              extends Recipe[Nothing]
     final case class AddIngredient(ingredient: Ingredient)            extends Recipe[Ingredient]
     final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]]
+
+    def addIngredient(ingredient: Ingredient): Recipe[Ingredient] = AddIngredient(ingredient)
+
+    def disaster: Recipe[Nothing] = Disaster
   }
   import Recipe._
 
@@ -587,4 +593,13 @@ object recipes {
         else if (time * temp > 6000) Baked.Burnt(a)
         else Baked.CookedPerfect(a)
     }
+
+  final case class Cake(ingredients: List[Ingredient])
+
+  /**
+   * EXERCISE 5
+   *
+   * Make a recipe that will produced a baked cake or other food of your choice!
+   */
+  lazy val recipe: Recipe[Baked[Cake]] = ???
 }

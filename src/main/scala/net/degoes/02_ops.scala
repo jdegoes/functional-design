@@ -62,6 +62,12 @@ object input_stream {
      */
     def buffered: IStream = ???
   }
+  object IStream {
+    val empty: IStream = IStream(() => new java.io.ByteArrayInputStream(Array.ofDim[Byte](0)))
+
+    def suspend(is: => IStream): IStream =
+      IStream(() => is.createInputStream())
+  }
 
   /**
    * EXERCISE 4
@@ -205,10 +211,45 @@ object contact_processing {
       } yield add(newColumn, column).delete(column1).delete(column2)
   }
 
-  sealed trait MappingResult[+A]
+  sealed trait MappingResult[+A] { self =>
+    import MappingResult._
+
+    def flatMap[B](f: A => MappingResult[B]): MappingResult[B] =
+      self match {
+        case Success(warnings, value) =>
+          f(value) match {
+            case Success(warnings2, value) => Success(warnings ++ warnings2, value)
+            case Failure(errors)           => Failure(errors)
+          }
+
+        case Failure(errors) => Failure(errors)
+      }
+
+    def map[B](f: A => B): MappingResult[B] =
+      self match {
+        case Success(warnings, value) => Success(warnings, f(value))
+        case Failure(errors)          => Failure(errors)
+      }
+
+    def zip[B](that: MappingResult[B]): MappingResult[(A, B)] =
+      (self, that) match {
+        case (Success(warnings1, value1), Success(warnings2, value2)) =>
+          Success(warnings1 ++ warnings2, (value1, value2))
+        case (Failure(errors), _) => Failure(errors)
+        case (_, Failure(errors)) => Failure(errors)
+      }
+
+    def zipWith[B, C](that: MappingResult[B])(f: (A, B) => C): MappingResult[C] = (self zip that).map(f.tupled)
+  }
   object MappingResult {
     final case class Success[+A](warnings: List[String], value: A) extends MappingResult[A]
     final case class Failure(errors: List[String])                 extends MappingResult[Nothing]
+
+    def fromOption[A](option: Option[A], error: String): MappingResult[A] =
+      option match {
+        case None    => Failure(error :: Nil)
+        case Some(v) => Success(Nil, v)
+      }
   }
 
   final case class SchemaMapping(map: ContactsCSV => MappingResult[ContactsCSV]) { self =>
@@ -383,7 +424,7 @@ object education {
     final case class TrueFalse(question: String, checker: Checker[Boolean]) extends Question[Boolean]
   }
 
-  final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) {
+  final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) { self =>
     def totalPoints: Int = correctPoints - wrongPoints
 
     def toBonus: QuizResult = QuizResult(0, bonusPoints + correctPoints, 0, Vector.empty)
@@ -426,11 +467,11 @@ object education {
     /**
      * EXERCISE 5
      *
-     * Add a conditional operator which, if the user gets this quiz right
-     * enough, as determined by the specified cutoff, will do the `ifPass`
-     * quiz afterward; but otherwise, do the `ifFail` quiz.
+     * Add a conditional operator that calls the specified function on the result of running the
+     * quiz, and if it returns true, will execute the `ifPass` quiz afterward; but otherwise, will
+     * execute the `ifFail` quiz.
      */
-    def conditional(cutoff: Int)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
+    def check(f: QuizResult => Boolean)(ifPass: Quiz, ifFail: Quiz): Quiz = ???
   }
   object Quiz {
     private def grade[A](f: String => A, checker: Checker[A]): QuizResult =
@@ -467,7 +508,7 @@ object education {
      * Add an `empty` Quiz that does not ask any questions and only returns
      * an empty QuizResult.
      */
-    def empty: Quiz = ???
+    def empty: Quiz = Quiz(() => QuizResult.empty)
   }
 
   final case class Checker[-A](points: Int, isCorrect: A => Either[String, Unit])

@@ -42,7 +42,7 @@ object tour {
       queue: Queue[A],
       count: Int,
       worker: A => Task[Unit]
-    ): Task[Throwable] = {
+    ): UIO[Throwable] = {
       val qworker =
         ZIO.uninterruptible {
           for {

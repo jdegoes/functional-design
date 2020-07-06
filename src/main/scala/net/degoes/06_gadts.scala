@@ -10,6 +10,11 @@ package net.degoes
  *
  */
 
+object Motivation {
+  val any2stringadd = null
+
+}
+
 /**
  * EXPRESSIONS - EXERCISE SET 1
  *
@@ -91,6 +96,9 @@ object expr {
  * PARSERS - EXERCISE SET 2
  */
 object parser {
+  // `Parser[A]` is a model of a series of parse operations that consume
+  // characters and ultimately use the consumed input construct a value of
+  // type `A`.
   sealed trait Parser[+A]
   object Parser {
     final case object OneChar extends Parser[Char]
