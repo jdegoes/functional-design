@@ -74,33 +74,40 @@ object spreadsheet {
   /**
    * EXERCISE 1
    *
-   * Design a subtype of `Value` called `CalculatedValue`, which
-   * represents a value that is dynamically computed from a spreadsheet.
+   * Design a data type called `CalculatedValue`, which represents a `Value` that is dynamically
+   * computed from a `Spreadsheet`.
    */
-  final case class CalculatedValue( /* ??? */ ) extends Value { self =>
+  final case class CalculatedValue( /* ??? */ ) { self =>
 
     /**
      * EXERCISE 2
      *
-     * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
-     * example, one operator could "negate" a double expression.
+     * Add an operator that returns a new `CalculatedValue` that is the negated version of this one.
      */
     def negate: CalculatedValue = ???
 
     /**
      * EXERCISE 3
      *
-     * Add some operators to combine `CalculatedValue`. For example, one operator
-     * could sum two double expressions.
+     * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
+     * calculated values.
      */
-    def sum(that: CalculatedValue): CalculatedValue = ???
-  }
-  object CalculatedValue {
+    def +(that: CalculatedValue): CalculatedValue = ???
 
     /**
      * EXERCISE 4
      *
-     * Add a constructor that makes an CalculatedValue from a Value.
+     * Add a binary operator `-` that returns a new `CalculatedValue` that is the difere;nce of the
+     * two calculated values.
+     */
+    def -(that: CalculatedValue): CalculatedValue = ???
+  }
+  object CalculatedValue {
+
+    /**
+     * EXERCISE 5
+     *
+     * Add a constructor that makes an `CalculatedValue` from a `Value`.
      */
     def const(contents: Value): CalculatedValue = ???
 
@@ -116,7 +123,7 @@ object spreadsheet {
   /**
    * EXERCISE 6
    *
-   * Describe a cell whose contents are the sum of other cells.
+   * Describe a cell whose contents are the sum of the cells at (0, 0) and (1, 0).
    */
   lazy val cell1: Cell = ???
 }
@@ -151,7 +158,7 @@ object etl {
   final case class DataStream(foreach: (Try[DataRow] => Unit) => Unit) { self =>
     def coerce(name: String, dtype: DataType): DataStream = self.map(_.coerce(name, dtype))
 
-    def delete(name: String): DataStream = map(_.delete(name))
+    def delete(name: String): DataStream = self.map(_.delete(name))
 
     def orElse(that: => DataStream): DataStream =
       DataStream { callback =>
@@ -211,6 +218,7 @@ object etl {
 
     def coerce(otherType: DataType): Option[DataValue]
   }
+  object DataValue {}
 
   /**
    * `Pipeline` is a data type that models a transformation from an input data

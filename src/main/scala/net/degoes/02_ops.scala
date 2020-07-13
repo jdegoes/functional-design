@@ -1,4 +1,5 @@
 package net.degoes
+
 /*
  * INTRODUCTION
  *
@@ -63,8 +64,15 @@ object input_stream {
     def buffered: IStream = ???
   }
   object IStream {
+
+    /**
+     * Creates an empty stream.
+     */
     val empty: IStream = IStream(() => new java.io.ByteArrayInputStream(Array.ofDim[Byte](0)))
 
+    /**
+     * Defers the construction of a `IStream` that might fail.
+     */
     def suspend(is: => IStream): IStream =
       IStream(() => is.createInputStream())
   }
@@ -211,6 +219,10 @@ object contact_processing {
       } yield add(newColumn, column).delete(column1).delete(column2)
   }
 
+  /**
+   * A `MappingResult[A]` is the result of mapping a schema. It is either a failure, in which case
+   * there are 0 or more errors; or it is a success, in which case there are 0 or more warnings.
+   */
   sealed trait MappingResult[+A] { self =>
     import MappingResult._
 
@@ -223,6 +235,16 @@ object contact_processing {
           }
 
         case Failure(errors) => Failure(errors)
+      }
+
+    def orElse[A1 >: A](that: MappingResult[A1]): MappingResult[A1] =
+      self match {
+        case Success(warnings, value) => Success(warnings, value)
+        case Failure(errors) =>
+          that match {
+            case Success(warnings, value) => Success(warnings, value)
+            case Failure(errors2)         => Failure(errors ++ errors2)
+          }
       }
 
     def map[B](f: A => B): MappingResult[B] =
@@ -301,7 +323,7 @@ object contact_processing {
     ): SchemaMapping = ???
 
     /**
-     * EXERCISE 5
+     * EXERCISE 6
      *
      * Add a constructor for `SchemaMapping` that moves the column of the
      * specified name to the jth position.
@@ -309,7 +331,7 @@ object contact_processing {
     def relocate(column: String, j: Int): SchemaMapping = ???
 
     /**
-     * EXERCISE 6
+     * EXERCISE 7
      *
      * Add a constructor for `SchemaMapping` that deletes the column of the
      * specified name.
@@ -318,7 +340,7 @@ object contact_processing {
   }
 
   /**
-   * EXERCISE 7
+   * EXERCISE 8
    *
    * Create a schema mapping that can remap the user's uploaded schema into the
    * company's official schema for contacts, by composing schema mappings
@@ -425,8 +447,6 @@ object education {
   }
 
   final case class QuizResult(correctPoints: Int, bonusPoints: Int, wrongPoints: Int, wrong: Vector[String]) { self =>
-    def totalPoints: Int = correctPoints - wrongPoints
-
     def toBonus: QuizResult = QuizResult(0, bonusPoints + correctPoints, 0, Vector.empty)
 
     /**

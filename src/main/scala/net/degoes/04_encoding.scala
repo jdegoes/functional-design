@@ -37,6 +37,16 @@ package net.degoes
  * opaque). On the other hand, abstract encodings are "closed": no one can add
  * new constructors or operators, without updating existing code.
  *
+ * Summarizing the difference between executable and abstract encodings:
+ *
+ *  - Executable encodings have open constructors/operators, but closed
+ *    interpreters.
+ *  - Declarative encodings have closed constructors/operators, but open
+ *    interpreters.
+ *
+ * Note: Tagless-final an executable encoding, but where by making the "solutions"
+ * polymorphic, the choice of executor can be deferred arbitrarily.
+ *
  * Legacy code prefers executable encodings; while many benefits of Functional
  * Design can be seen best using abstract encodings.
  *
@@ -137,10 +147,10 @@ object contact_processing2 {
   def run(mapping: SchemaMapping2, contacts: ContactsCSV): MappingResult[ContactsCSV] = ???
 
   /**
-   * EXERCISE 6
+   * BONUS EXERCISE
    *
-   * Implement an optimizer for the `SchemaMapping` model that detects and eliminates
-   * redundant renames; e.g. renaming "name" to "first_name", and then back to "name".
+   * Implement an optimizer for the `SchemaMapping` model that pushes deletes to the front of the
+   * schema mapping in cases where doing so wouldn't later the result.
    */
   def optimize(schemaMapping: SchemaMapping2): SchemaMapping2 =
     ???
@@ -278,7 +288,7 @@ object spreadsheet2 {
     final case class Dbl(value: Double)     extends Value
   }
 
-  sealed trait CalculatedValue extends Value {
+  sealed trait CalculatedValue { self =>
 
     /**
      * EXERCISE 1

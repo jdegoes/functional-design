@@ -1,6 +1,5 @@
 package net.degoes
 
-package net.degoes
 /*
  * INTRODUCTION
  *

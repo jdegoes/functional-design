@@ -10,11 +10,6 @@ package net.degoes
  *
  */
 
-object Motivation {
-  val any2stringadd = null
-
-}
-
 /**
  * EXPRESSIONS - EXERCISE SET 1
  *
@@ -96,26 +91,28 @@ object expr {
  * PARSERS - EXERCISE SET 2
  */
 object parser {
+  type Error = String
+  type Input = String
+
   // `Parser[A]` is a model of a series of parse operations that consume
   // characters and ultimately use the consumed input construct a value of
   // type `A`.
-  sealed trait Parser[+A]
+  sealed trait Parser[+A] { self =>
+    def atLeast(n: Int): Parser[List[A]] = Parser.Repeat(self, Some(n), None)
+
+    def atMost(n: Int): Parser[List[A]] = Parser.Repeat(self, None, Some(n))
+
+    def between(min: Int, max: Int): Parser[List[A]] = Parser.Repeat(self, Some(min), Some(max))
+
+    def repeat: Parser[List[A]] = Parser.Repeat(self, None, None)
+  }
   object Parser {
     final case object OneChar extends Parser[Char]
 
-    /**
-     * EXERCISE 1
-     *
-     * Add an operator that can repeat a parser between some lower range
-     * (optional) and some upper range (optional).
-     *
-     * NOTE: Be sure to modify the `parse` method below, so that it can
-     * handle the new operation.
-     */
-    final case class Repeat()
+    final case class Repeat[A](value: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[List[A]]
 
     /**
-     * EXERCISE 2
+     * EXERCISE 1
      *
      * Add a constructor that models the production of the specified value (of
      * any type at all), without consuming any input.
@@ -126,7 +123,7 @@ object parser {
     final case class Succeed()
 
     /**
-     * EXERCISE 3
+     * EXERCISE 2
      *
      * Add a constructor that models failure with a string error message.
      *
@@ -136,7 +133,7 @@ object parser {
     final case class Fail()
 
     /**
-     * EXERCISE 4
+     * EXERCISE 3
      *
      * Add an operator that can try one parser, but if that fails, try
      * another parser.
@@ -147,7 +144,7 @@ object parser {
     final case class OrElse()
 
     /**
-     * EXERCISE 5
+     * EXERCISE 4
      *
      * Add an operator that parses one thing, and then parses another one,
      * in sequence, producing a tuple of their results.
@@ -160,11 +157,29 @@ object parser {
 
   import Parser._
 
-  def parse[A](parser: Parser[A], input: String): Either[String, (String, A)] =
+  def parse[A](parser: Parser[A], input: Input): Either[Error, (Input, A)] =
     parser match {
       case OneChar =>
         input.headOption
           .map((a: Char) => Right(input.drop(1) -> a))
-          .getOrElse(Left("The input to the parser has no remaining characters"))
+          .getOrElse(Left("Expected a character but found an empty string"))
+
+      case repeat: Repeat[a] =>
+        val min = repeat.min.getOrElse(0)
+        val max = repeat.max.getOrElse(Int.MaxValue)
+
+        (min to max)
+          .foldLeft[Either[Error, (Input, List[a])]](Right((input, Nil))) {
+            case (e @ Left(_), _) => e
+
+            case (Right((input, as)), _) =>
+              parse[a](repeat.value, input) match {
+                case Left(error)       => if (as.length >= min) Right((input, as)) else Left(error)
+                case Right((input, a)) => Right((input, a :: as))
+              }
+          }
+          .map {
+            case (input, as) => (input, as.reverse)
+          }
     }
 }

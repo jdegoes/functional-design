@@ -102,12 +102,8 @@ object loyalty_program {
      * `SystemAction` whenever a `RuleCalculation[Boolean]` evaluates to
      * true.
      */
-    final case class When(predicate: RuleCalculation[Boolean], action: SystemAction) extends RuleSet
-
-    def when(predicate: RuleCalculation[Boolean])(action: SystemAction): RuleSet =
-      When(predicate, action)
+    final case class When( /* ??? */ ) extends RuleSet
   }
-
   sealed trait RuleCalculation[+A] { self =>
 
     /**
@@ -121,8 +117,7 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.as[Boolean]
 
-      val _ = self1 // DELETE ME
-
+      val _ = self1 // DELETE ME once you use `self1`
       ???
     }
 
@@ -137,7 +132,7 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.as[Boolean]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -148,11 +143,11 @@ object loyalty_program {
      * Add an operator `negate` that applies only with this calculation produces
      * a boolean, and which models the boolean negation of this value.
      */
-    def negate(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = {
+    def unary_!(implicit ev: A <:< Boolean): RuleCalculation[Boolean] = {
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.as[Boolean]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -169,7 +164,7 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.as[Currency]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -188,7 +183,7 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.as[Currency]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -205,7 +200,7 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.as[Currency]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -224,7 +219,24 @@ object loyalty_program {
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.as[Currency]
 
-      val _ = self1 // DELETE ME
+      val _ = self1 // DELETE ME once you use `self1`
+
+      ???
+    }
+
+    /**
+     * EXERCISE 10
+     *
+     * Add an operator `===` that applies only when this calculation and the other calculation
+     * produce amounts, and which models equality.
+     */
+    def ===[Currency: Numeric](
+      that: RuleCalculation[Currency]
+    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] = {
+      // This line of code "proves" that the "A" type is actually a Currency:
+      val self1: RuleCalculation[Currency] = self.as[Currency]
+
+      val _ = self1 // DELETE ME once you use `self1`
 
       ???
     }
@@ -240,7 +252,7 @@ object loyalty_program {
      * Add a constructor that models calculation of a constant value of the
      * specified type.
      */
-    final case class Constant[A](value: A) extends RuleCalculation[A]
+    final case class Constant[A]( /* ??? */ )
 
     /**
      * EXERCISE 11
@@ -248,7 +260,7 @@ object loyalty_program {
      * Add a constructor that models calculation of the price of an item that
      * the user buys, in a fiscal currency.
      */
-    final case class PurchasePrice()
+    final case object PurchasePrice
 
     /**
      * EXERCISE 12
@@ -256,7 +268,7 @@ object loyalty_program {
      * Add a constructor that models calculation of the price of an item that
      * the user buys, in a fiscal currency.
      */
-    final case class ItemPrice()
+    final case object ItemPrice
 
     /**
      * EXERCISE 13
@@ -264,7 +276,7 @@ object loyalty_program {
      * Add a constructor that models the number of days since the last purchase
      * of the user, as an integer.
      */
-    final case class DaysSinceLastPurchase()
+    final case object DaysSinceLastPurchase
   }
 
   sealed trait UserAction
@@ -297,7 +309,8 @@ object loyalty_program {
    * Construct a rule set that describes promotion to the next tier, as
    * well as demotion, and changing the status of the user to inactive.
    */
-  def ruleSet: RuleSet = ???
+  def ruleSet: RuleSet =
+    ???
 
   /**
    * Example of running a rule set on the history of a user to produce system actions.
@@ -568,11 +581,13 @@ object data_processing {
     val dateTime          = DateTime
     val nulls: Schema     = Null
 
+    def list(schema: => Schema): Schema = Sequence(() => schema)
+
     lazy val personSchema: Schema =
       hasField("name", string) &
         hasField("age", number | nulls) &
-        hasField("address", string) &
-        hasField("manager", personSchema)
+        hasField("address", list(string)) &
+        hasField("manager", personSchema | nulls)
   }
 
   sealed trait Data {
@@ -591,13 +606,13 @@ object data_processing {
       def schema =
         value.map { case (name, data) => Schema.hasField(name, data.schema) }.reduceOption(_ & _) match {
           case Some(value) => value
-          case None        => Schema.Arbitrary
+          case None        => Schema.arbitrary
         }
     }
     final case class Sequence(value: List[Data]) extends Data {
       def schema = value.map(_.schema).toSet.reduceOption(_ | _) match {
         case Some(value) => value
-        case None        => Schema.Arbitrary
+        case None        => Schema.arbitrary
       }
     }
   }
@@ -609,7 +624,6 @@ object data_processing {
    * transformations (e.g. replacing nulls with values, replacing one type of
    * value with another type.
    */
-  sealed trait Transformation { self =>
-  }
-  object Transformation {}
+  sealed trait Transformation {}
+  object Transformation       {}
 }

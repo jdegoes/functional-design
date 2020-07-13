@@ -12,8 +12,8 @@ object welcome {
   //
   // Daily Schedule:
   //
-  //    START  : 1:00 PM CET
-  //    BREAK  : 2:45 PM CET
-  //    RESUME : 3:15 PM CET
-  //    END    : 5:00 PM CET
+  //    START  : 3:00 PM
+  //    BREAK  : 4:45 PM
+  //    RESUME : 5:15 PM
+  //    END    : 7:00 PM
 }
