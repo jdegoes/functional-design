@@ -43,7 +43,7 @@ object input_stream {
      * exhausted, it will close the first input stream, make the second
      * input stream, and continue reading from the second one.
      */
-    def ++(that: IStream): IStream = ???
+    def ++(that: => IStream): IStream = ???
 
     /**
      * EXERCISE 2
@@ -52,7 +52,7 @@ object input_stream {
      * try to create the first input stream, but if that fails by throwing
      * an exception, it will then try to create the second input stream.
      */
-    def orElse(that: IStream): IStream = ???
+    def orElse(that: => IStream): IStream = ???
 
     /**
      * EXERCISE 3
@@ -124,7 +124,7 @@ object email_filter {
      * Add a "negate" operator that will match an email if this email filter
      * does NOT match an email.
      */
-    def negate: EmailFilter = ???
+    def unary_! : EmailFilter = ???
   }
   object EmailFilter {
     def senderIs(address: Address): EmailFilter = EmailFilter(_.sender == address)
@@ -396,7 +396,11 @@ object ui_events {
      * Add a method `+` that composes two listeners into a single listener,
      * by sending each game event to both listeners.
      */
-    def +(that: Listener): Listener = ???
+    def +(that: Listener): Listener =
+      Listener { event =>
+        self.onEvent(event)
+        that.onEvent(event)
+      }
 
     /**
      * EXERCISE 2
@@ -423,6 +427,21 @@ object ui_events {
      */
     def debug: Listener = ???
   }
+
+  /**
+   * EXERCISE 5
+   *
+   * Create a composite listener that runs all of the following three
+   * listeners in response to each game event, making the gfxUpdateListener
+   * run on the `uiExecutionContext`, and debugging the input events.
+   */
+  lazy val solution = ???
+
+  lazy val twinkleAnimationListener: Listener = ???
+  lazy val motionDetectionListener: Listener  = ???
+  lazy val gfxUpdateListener: Listener        = ???
+
+  lazy val uiExecutionContext: scala.concurrent.ExecutionContext = ???
 }
 
 /**
@@ -455,7 +474,13 @@ object education {
      * Add a `+` operator that combines this quiz result with the specified
      * quiz result.
      */
-    def +(that: QuizResult): QuizResult = ???
+    def +(that: QuizResult): QuizResult =
+      QuizResult(
+        self.correctPoints + that.correctPoints,
+        self.bonusPoints + that.bonusPoints,
+        self.wrongPoints + that.wrongPoints,
+        self.wrong ++ that.wrong
+      )
   }
   object QuizResult {
 

@@ -104,7 +104,9 @@ object parser {
 
     def between(min: Int, max: Int): Parser[List[A]] = Parser.Repeat(self, Some(min), Some(max))
 
-    def repeat: Parser[List[A]] = Parser.Repeat(self, None, None)
+    def * : Parser[List[A]] = Parser.Repeat(self, None, None)
+
+    def + : Parser[List[A]] = atLeast(1)
   }
   object Parser {
     final case object OneChar extends Parser[Char]

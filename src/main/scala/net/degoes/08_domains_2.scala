@@ -38,6 +38,12 @@ object loyalty_program {
     final case object USD extends FiscalCurrency
   }
 
+  sealed trait Numeric[A]
+  object Numeric {
+    implicit case object IntNumeric    extends Numeric[Int]
+    implicit case object DoubleNumeric extends Numeric[Double]
+  }
+
   final case class Amount[Currency](value: BigDecimal, currency: Currency) {
     def +(that: Amount[Currency]): Amount[Currency] =
       copy(value = value + that.value)
@@ -77,26 +83,39 @@ object loyalty_program {
 
   final case class Benefit(description: String)
 
+  sealed trait IsLiteral[A]
+  object IsLiteral {
+    implicit case object IntIsLiteral    extends IsLiteral[Int]
+    implicit case object DoubleIsLiteral extends IsLiteral[Double]
+  }
+
   /*
    * Rule sets represent sets of rules that can perform actions in response
    * to conditions being met. For example, if a user spends so much money,
    * then they may be eligible for an automatic tier promotion.
    */
-  sealed trait RuleSet {
+  sealed trait RuleSet { self =>
 
     /**
      * EXERCISE 1
      *
      * Augment `RuleSet` with an operator that models combining two rule sets
-     * into one, applying either the left (if it results in an action) or the
-     * right (if the left does not result in an action)
+     * into one.
      */
-    def +(that: RuleSet): RuleSet = ???
+    def &&(that: RuleSet): RuleSet = ???
+
+    /**
+     * EXERCISE 2
+     *
+     * Augment `RuleSet` with an operator that models combining two rule sets
+     * into one.
+     */
+    def ||(that: RuleSet): RuleSet = ???
   }
   object RuleSet {
 
     /**
-     * EXERCISE 2
+     * EXERCISE 3
      *
      * Augment `RuleSet` with a constructor that models execution of a
      * `SystemAction` whenever a `RuleCalculation[Boolean]` evaluates to
@@ -107,7 +126,7 @@ object loyalty_program {
   sealed trait RuleCalculation[+A] { self =>
 
     /**
-     * EXERCISE 3
+     * EXERCISE 4
      *
      * Add an operator `&&` that applies only with this calculation and the other
      * calculation produce booleans, and which models the boolean conjunction
@@ -122,7 +141,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 4
+     * EXERCISE 5
      *
      * Add an operator `||` that applies only with this calculation and the other
      * calculation produce booleans, and which models the boolean disjunction
@@ -138,7 +157,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 5
+     * EXERCISE 6
      *
      * Add an operator `negate` that applies only with this calculation produces
      * a boolean, and which models the boolean negation of this value.
@@ -153,7 +172,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 6
+     * EXERCISE 7
      *
      * Add an operator `>` that applies only when this calculation and the
      * other calculation produce amounts, and which models the `>` comparison
@@ -170,7 +189,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 7
+     * EXERCISE 8
      *
      * Add an operator `>=` that applies only when this calculation and the
      * other calculation produce amounts, and which models the `>=` comparison
@@ -189,7 +208,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 8
+     * EXERCISE 9
      *
      * Add an operator `<` that applies only when this calculation and the
      * other calculation produce amounts, and which models the `<` comparison
@@ -206,7 +225,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 9
+     * EXERCISE 10
      *
      * Add an operator `<=` that applies only when this calculation and the
      * other calculation produce amounts, and which models the `<=` comparison
@@ -225,7 +244,7 @@ object loyalty_program {
     }
 
     /**
-     * EXERCISE 10
+     * EXERCISE 11
      *
      * Add an operator `===` that applies only when this calculation and the other calculation
      * produce amounts, and which models equality.
@@ -247,7 +266,7 @@ object loyalty_program {
     final case class Widen[A, B](rc: RuleCalculation[A])(implicit val ev: A <:< B) extends RuleCalculation[B]
 
     /**
-     * EXERCISE 10
+     * EXERCISE 12
      *
      * Add a constructor that models calculation of a constant value of the
      * specified type.
@@ -255,7 +274,7 @@ object loyalty_program {
     final case class Constant[A]( /* ??? */ )
 
     /**
-     * EXERCISE 11
+     * EXERCISE 13
      *
      * Add a constructor that models calculation of the price of an item that
      * the user buys, in a fiscal currency.
@@ -263,7 +282,7 @@ object loyalty_program {
     final case object PurchasePrice
 
     /**
-     * EXERCISE 12
+     * EXERCISE 14
      *
      * Add a constructor that models calculation of the price of an item that
      * the user buys, in a fiscal currency.
@@ -271,7 +290,7 @@ object loyalty_program {
     final case object ItemPrice
 
     /**
-     * EXERCISE 13
+     * EXERCISE 15
      *
      * Add a constructor that models the number of days since the last purchase
      * of the user, as an integer.
@@ -309,8 +328,7 @@ object loyalty_program {
    * Construct a rule set that describes promotion to the next tier, as
    * well as demotion, and changing the status of the user to inactive.
    */
-  def ruleSet: RuleSet =
-    ???
+  def ruleSet: RuleSet = ???
 
   /**
    * Example of running a rule set on the history of a user to produce system actions.
@@ -348,25 +366,18 @@ object calendar {
     case object Saturday  extends DayOfWeek
   }
 
-  final case class TimeSpan(start: HourOfDay, end: HourOfDay) {
-    def length: Int = end.value - start.value
-  }
-  object TimeSpan {
-    val empty: TimeSpan = TimeSpan(HourOfDay(0), HourOfDay(0))
-  }
-
   /**
    * EXERCISE 1
    *
    * Explore the structure of `CalendarAppointment` by deciding what composable,
    * orthogonal operations to add to the data type.
    */
-  final case class CalendarAppointment(span: TimeSpan) { self =>
-    def length: Int = span.length
+  final case class CalendarAppointment(start: HourOfDay, end: HourOfDay) { self =>
+    def length: Int = end.value - start.value
   }
   object CalendarAppointment {
-    val empty: CalendarAppointment = CalendarAppointment(TimeSpan.empty)
-    val full: CalendarAppointment  = CalendarAppointment(TimeSpan(HourOfDay(0), HourOfDay(24)))
+    val empty: CalendarAppointment = CalendarAppointment(HourOfDay(0), HourOfDay(0))
+    val full: CalendarAppointment  = CalendarAppointment(HourOfDay(0), HourOfDay(24))
   }
 
   /**

@@ -239,7 +239,7 @@ object email_filter2 {
   /**
    * EXERCISE 9
    *
-   * Implement a function to print out an English-readable description of an
+   * Implement a function to make an English-readable description of an
    * `EmailFilter`.
    */
   def describe(filter: EmailFilter): Unit = ???
@@ -294,7 +294,7 @@ object spreadsheet2 {
      * EXERCISE 1
      *
      * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
-     * example, one operator could "negate" a double CalculatedValueession.
+     * example, one operator could "negate" a double CalculatedValue.
      */
     def negate: CalculatedValue = ???
 
@@ -366,17 +366,32 @@ object ecommerce_marketing {
     sealed trait Pattern { self =>
       def +(that: Pattern): Pattern = Pattern.Sequence(self, that)
 
+      def atLeast(n: Int): Pattern = repeat(Some(n), None)
+
+      def atMost(n: Int): Pattern = repeat(None, Some(n))
+
+      def between(min: Int, max: Int): Pattern = repeat(Some(min), Some(max))
+
       def repeat(min: Option[Int], max: Option[Int]): Pattern = Pattern.Repeat(self, min, max)
     }
     object Pattern {
-
       case object HasAnyAttribute                                                   extends Pattern
       final case class HasAttribute(attr: Attribute)                                extends Pattern
       final case class HasValue(attr: Attribute, value: Value)                      extends Pattern
       final case class Sequence(first: Pattern, second: Pattern)                    extends Pattern
       final case class Repeat(pattern: Pattern, min: Option[Int], max: Option[Int]) extends Pattern
+
+      val hasAnyAttribute: Pattern = HasAnyAttribute
+
+      def hasAttribute(attr: Attribute): Pattern = HasAttribute(attr)
+
+      def hasValue(attr: Attribute, value: Value): Pattern = HasValue(attr, value)
     }
     import Pattern._
+
+    val example =
+      hasAnyAttribute +
+        hasAttribute(Attribute.ShoppingCartId)
 
     def matches(history: List[Event], pattern: Pattern): Boolean = {
       def loop(history: List[Event], pattern: Pattern): (List[Event], Boolean) =
@@ -423,5 +438,14 @@ object ecommerce_marketing {
    */
   object executable_encoding {
     type Pattern
+    object Pattern {
+      val hasAnyAttribute: Pattern = ???
+
+      def hasAttribute(attr: Attribute): Pattern = ???
+
+      def hasValue(attr: Attribute, value: Value): Pattern = ???
+
+      def partial(pf: PartialFunction[List[Event], (List[Event], Boolean)]): Pattern = ???
+    }
   }
 }
