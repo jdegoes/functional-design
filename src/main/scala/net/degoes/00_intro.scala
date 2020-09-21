@@ -54,9 +54,9 @@ object tour {
       val qworkers = List.fill(count)(qworker)
 
       (for {
-        fiber <- ZIO.forkAll(qworkers)
+        fiber <- ZIO.forkAll(qworkers.map(_.flatMap(_ => ZIO.unit)))
         list  <- fiber.join
-      } yield list.head).flip
+      } yield list.head).flatMap(_ => ZIO.never).flip
     }
   }
 
