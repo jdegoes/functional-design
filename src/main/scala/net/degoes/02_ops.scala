@@ -396,11 +396,7 @@ object ui_events {
      * Add a method `+` that composes two listeners into a single listener,
      * by sending each game event to both listeners.
      */
-    def +(that: Listener): Listener =
-      Listener { event =>
-        self.onEvent(event)
-        that.onEvent(event)
-      }
+    def +(that: Listener): Listener = ???
 
     /**
      * EXERCISE 2
@@ -474,13 +470,7 @@ object education {
      * Add a `+` operator that combines this quiz result with the specified
      * quiz result.
      */
-    def +(that: QuizResult): QuizResult =
-      QuizResult(
-        self.correctPoints + that.correctPoints,
-        self.bonusPoints + that.bonusPoints,
-        self.wrongPoints + that.wrongPoints,
-        self.wrong ++ that.wrong
-      )
+    def +(that: QuizResult): QuizResult = ???
   }
   object QuizResult {
 
@@ -553,7 +543,7 @@ object education {
      * Add an `empty` Quiz that does not ask any questions and only returns
      * an empty QuizResult.
      */
-    def empty: Quiz = Quiz(() => QuizResult.empty)
+    def empty: Quiz = ???
   }
 
   final case class Checker[-A](points: Int, isCorrect: A => Either[String, Unit])
