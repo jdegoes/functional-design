@@ -19,6 +19,8 @@ project/plugins/project/
 .metals
 .idea/
 .vscode
+metals.sbt
 
 .DS_Store
 
+project/metals.sbt
