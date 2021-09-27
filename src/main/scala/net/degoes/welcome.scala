@@ -12,8 +12,8 @@ object welcome {
   //
   // Daily Schedule:
   //
-  //    START  : 11:00 AM London Time
-  //    BREAK  :  2:00 PM London Time
-  //    RESUME :  1:00 PM London Time
-  //    END    :  7:00 PM London Time
+  //    START  : 11:00 AM   Eastern Time
+  //    BREAK  : 12:45 NOON Eastern Time
+  //    RESUME :  1:15 PM   Eastern Time
+  //    END    :  3:00 PM   Eastern Time
 }

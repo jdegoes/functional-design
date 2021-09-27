@@ -228,9 +228,9 @@ object contact_processing {
 
     def flatMap[B](f: A => MappingResult[B]): MappingResult[B] =
       self match {
-        case Success(warnings, value) =>
+        case Success(value, warnings) =>
           f(value) match {
-            case Success(warnings2, value) => Success(warnings ++ warnings2, value)
+            case Success(value, warnings2) => Success(value, warnings ++ warnings2)
             case Failure(errors)           => Failure(errors)
           }
 
@@ -239,24 +239,24 @@ object contact_processing {
 
     def orElse[A1 >: A](that: MappingResult[A1]): MappingResult[A1] =
       self match {
-        case Success(warnings, value) => Success(warnings, value)
+        case Success(value, warnings) => Success(value, warnings)
         case Failure(errors) =>
           that match {
-            case Success(warnings, value) => Success(warnings, value)
+            case Success(value, warnings) => Success(value, warnings)
             case Failure(errors2)         => Failure(errors ++ errors2)
           }
       }
 
     def map[B](f: A => B): MappingResult[B] =
       self match {
-        case Success(warnings, value) => Success(warnings, f(value))
+        case Success(value, warnings) => Success(f(value), warnings)
         case Failure(errors)          => Failure(errors)
       }
 
     def zip[B](that: MappingResult[B]): MappingResult[(A, B)] =
       (self, that) match {
-        case (Success(warnings1, value1), Success(warnings2, value2)) =>
-          Success(warnings1 ++ warnings2, (value1, value2))
+        case (Success(value1, warnings1), Success(value2, warnings2)) =>
+          Success((value1, value2), warnings1 ++ warnings2)
         case (Failure(errors), _) => Failure(errors)
         case (_, Failure(errors)) => Failure(errors)
       }
@@ -264,13 +264,13 @@ object contact_processing {
     def zipWith[B, C](that: MappingResult[B])(f: (A, B) => C): MappingResult[C] = (self zip that).map(f.tupled)
   }
   object MappingResult {
-    final case class Success[+A](warnings: List[String], value: A) extends MappingResult[A]
-    final case class Failure(errors: List[String])                 extends MappingResult[Nothing]
+    final case class Success[+A](value: A, warnings: List[String] = Nil) extends MappingResult[A]
+    final case class Failure(errors: List[String])                       extends MappingResult[Nothing]
 
     def fromOption[A](option: Option[A], error: String): MappingResult[A] =
       option match {
         case None    => Failure(error :: Nil)
-        case Some(v) => Success(Nil, v)
+        case Some(v) => Success(v)
       }
   }
 
@@ -297,54 +297,53 @@ object contact_processing {
     def orElse(that: SchemaMapping): SchemaMapping = ???
 
     /**
-     * BONUS: EXERCISE 3
+     * EXERCISE 3
      *
      * Add an `protect` operator that returns a new schema mapping that
-     * preserve the specified column names in the final result.
+     * preserve the specified column names & their original values in the
+     * final result.
      */
     def protect(columnNames: Set[String]): SchemaMapping = ???
   }
   object SchemaMapping {
 
     /**
-     * EXERCISE 4
-     *
-     * Add a constructor for `SchemaMapping` that renames a column.
+     * A constructor for `SchemaMapping` that renames a column.
      */
-    def rename(oldName: String, newName: String): SchemaMapping = ???
+    def rename(oldName: String, newName: String): SchemaMapping =
+      SchemaMapping(csv => MappingResult.Success(csv.rename(oldName, newName)))
 
     /**
-     * EXERCISE 5
-     *
-     * Add a constructor for `SchemaMapping` that combines two columns into one.
+     * A constructor for `SchemaMapping` that combines two columns into one.
      */
     def combine(leftColumn: String, rightColumn: String)(newName: String)(
       f: (String, String) => String
-    ): SchemaMapping = ???
+    ): SchemaMapping =
+      SchemaMapping(csv =>
+        MappingResult.fromOption(csv.combine(leftColumn, rightColumn)(newName)(f), "Those columns do not exist")
+      )
 
     /**
-     * EXERCISE 6
-     *
-     * Add a constructor for `SchemaMapping` that moves the column of the
+     * A constructor for `SchemaMapping` that moves the column of the
      * specified name to the jth position.
      */
-    def relocate(column: String, j: Int): SchemaMapping = ???
+    def relocate(column: String, j: Int): SchemaMapping =
+      SchemaMapping(csv => MappingResult.fromOption(csv.relocate(column, j), "Non-existing columns"))
 
     /**
-     * EXERCISE 7
-     *
-     * Add a constructor for `SchemaMapping` that deletes the column of the
+     * A constructor for `SchemaMapping` that deletes the column of the
      * specified name.
      */
-    def delete(name: String): SchemaMapping = ???
+    def delete(name: String): SchemaMapping =
+      SchemaMapping(csv => MappingResult.Success(csv.delete(name)))
   }
 
   /**
-   * EXERCISE 8
+   * EXERCISE 4
    *
    * Create a schema mapping that can remap the user's uploaded schema into the
    * company's official schema for contacts, by composing schema mappings
-   * constructed from constructors and operators.
+   * constructed from constructors and composed & transformed operators.
    */
   lazy val schemaMapping: SchemaMapping = ???
 
@@ -519,6 +518,9 @@ object education {
         }
       }.getOrElse(QuizResult(0, 0, checker.points, Vector("The format of your answer was not recognized")))
 
+    /**
+     * Builds a quiz from a single question.
+     */
     def apply[A](question: Question[A]): Quiz =
       Quiz { () =>
         import Question._
@@ -538,12 +540,10 @@ object education {
       }
 
     /**
-     * EXERCISE 6
-     *
-     * Add an `empty` Quiz that does not ask any questions and only returns
+     * An `empty` Quiz that does not ask any questions and only returns
      * an empty QuizResult.
      */
-    def empty: Quiz = ???
+    def empty: Quiz = Quiz(() => QuizResult.empty)
   }
 
   final case class Checker[-A](points: Int, isCorrect: A => Either[String, Unit])
@@ -561,7 +561,7 @@ object education {
   }
 
   /**
-   * EXERCISE 7
+   * EXERCISE 6
    *
    * Extend the following quiz with an additional 3 questions, including a
    * tough bonus question; and if the user fails the bonus question, fallback

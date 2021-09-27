@@ -78,4 +78,34 @@ object tour {
 
     lazy val example = flakyRequest("https://google.com").retry(schedule)
   }
+
+  object optics {
+    final case class User(name: String, address: Address)
+    object User {
+      val name: Lens[User, String]     = Lens(_.name, (u, n) => u.copy(name = n))
+      val address: Lens[User, Address] = Lens(_.address, (u, a) => u.copy(address = a))
+    }
+    final case class Address(street: String)
+    object Address {
+      val street: Lens[Address, String] = Lens(_.street, (u, s) => u.copy(street = s))
+    }
+
+    val sherlock = User("Sherlock Holmes", Address("Baker Street"))
+
+    /**
+     * Composes a lense for 'address' in 'User' together with a lens for
+     * 'street' in 'Address', generating a lens that accesses '.address.street'
+     * inside a `User` object. Then uses the lens to make the street name
+     * lower case inside the `sherlock` user.
+     */
+    (User.address >>> Address.street).update(_.toLowerCase)(sherlock)
+
+    final case class Lens[S, A](get: S => A, set: (S, A) => S) { self =>
+      def >>>[B](that: Lens[A, B]): Lens[S, B] =
+        Lens((s: S) => that.get(self.get(s)), (s: S, b: B) => self.set(s, that.set(self.get(s), b)))
+
+      def update(f: A => A): S => S = (s: S) => self.set(s, f(self.get(s)))
+    }
+  }
+
 }
