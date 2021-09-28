@@ -80,14 +80,15 @@ object input_stream {
   /**
    * EXERCISE 4
    *
-   * Construct an IStream that will read from `primary`,
-   * or will read from the concatenation of all `secondaries`,
-   * and will buffer everything.
+   * Construct an IStream that will read the data from `primary`,
+   * but if that fails, it will assemble the data from all the 
+   * `fragments` by concatenating them into one. Regardless of
+   * where the data comes from, everything should be buffered.
    */
-  lazy val solution: IStream = ???
+  lazy val allData: IStream = ???
 
-  lazy val primary: IStream           = ???
-  lazy val secondaries: List[IStream] = ???
+  lazy val primary: IStream         = ???
+  lazy val fragments: List[IStream] = ???
 }
 
 /**

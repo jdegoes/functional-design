@@ -123,7 +123,7 @@ object tour {
 
     lazy val tld = Parser.string("com") | Parser.string("net")
 
-    lazy val server = letterOrDigit.repeatedly + Parser.char('@').string + tld
+    lazy val server = letterOrDigit.repeatedly + Parser.char('.').string + tld
 
     final case class Parser[+E, +A](parse: Input => Either[E, (Input, A)]) { self =>
       def flatMap[E1 >: E, B](f: A => Parser[E1, B]): Parser[E1, B] =
