@@ -475,32 +475,30 @@ object education {
   object QuizResult {
 
     /**
-     * EXERCISE 2
-     *
-     * Add an `empty` QuizResult that, when combined with any quiz result,
+     * An `empty` QuizResult that, when combined with any quiz result,
      * returns that same quiz result.
      */
-    def empty: QuizResult = ???
+    def empty: QuizResult = QuizResult(0, 0, 0, Vector())
   }
 
   final case class Quiz(run: () => QuizResult) { self =>
 
     /**
-     * EXERCISE 3
+     * EXERCISE 2
      *
      * Add an operator `+` that appends this quiz to the specified quiz.
      */
     def +(that: Quiz): Quiz = ???
 
     /**
-     * EXERCISE 4
+     * EXERCISE 3
      *
      * Add a unary operator `bonus` that marks this quiz as a bonus quiz.
      */
     def bonus: Quiz = ???
 
     /**
-     * EXERCISE 5
+     * EXERCISE 4
      *
      * Add a conditional operator that calls the specified function on the result of running the
      * quiz, and if it returns true, will execute the `ifPass` quiz afterward; but otherwise, will
@@ -562,7 +560,7 @@ object education {
   }
 
   /**
-   * EXERCISE 6
+   * EXERCISE 5
    *
    * Extend the following quiz with an additional 3 questions, including a
    * tough bonus question; and if the user fails the bonus question, fallback

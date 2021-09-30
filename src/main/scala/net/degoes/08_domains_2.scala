@@ -638,3 +638,19 @@ object data_processing {
   sealed trait Transformation {}
   object Transformation       {}
 }
+
+object resources {
+  /**
+    * EXERCISE 1
+    * 
+    * Design a data type that can model a resource. The data type should be 
+    * equipped with operators, which allow transforming and composing 
+    * resources. You can use either the declarative or executable encodings.
+    */
+  trait Resource[+A] {
+    def use[B](f: A => B): B = ???
+  }
+  object Resource {
+    def make[A](acquire: => A, release: A => Any): Resource[A] = ???
+  }
+}

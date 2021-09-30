@@ -5,9 +5,10 @@ package net.degoes
  *
  * In Functional Design, a functional domain consists of three things:
  *
- * 1. A set of types that model a solution to a domain problem.
+ * 1. A functional model, which is an immutable data type that models a 
+ *    solution to problems in the domain of interest.
  *
- * 2. Constructors that allow constructing simple solutions.
+ * 2. Constructors that allow constructing solutions to simple problems.
  *
  * 3. Operators that solving more complex problems by transforming
  *    and combining solutions for subproblems.
