@@ -1,7 +1,6 @@
 package net.degoes
 
 import zio._
-import zio.duration._
 
 /*
  * INTRODUCTION
@@ -51,10 +50,10 @@ object tour {
           } yield ()
         }.forever
 
-      val qworkers = List.fill(count)(qworker)
+      val qworkers: List[ZIO[Any, Throwable, Nothing]] = List.fill(count)(qworker)
 
       (for {
-        fiber <- ZIO.forkAll(qworkers)
+        fiber <- ZIO.forkAll[Any, Throwable, Nothing, List](qworkers)
         list  <- fiber.join
       } yield list.head).flip
     }
