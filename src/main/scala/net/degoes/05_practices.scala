@@ -103,7 +103,7 @@ object email_filter3 {
 /**
  * COMPOSABILITY - EXERCISE SET 2
  */
-object ui_components {
+object ui_components extends App {
 
   /**
    * EXERCISE 1
@@ -112,14 +112,34 @@ object ui_components {
    * domain with elements, constructors, and composable operators.
    */
   trait Turtle { self =>
-    def turnLeft(degrees: Int): Unit
+    import doodle.turtle._
+    import doodle.turtle.Instruction._
+    import doodle.syntax._
+    import doodle.image.syntax._
+    import doodle.java2d._
+    import scala.collection.mutable
 
-    def turnRight(degrees: Int): Unit
+    private val movesSoFar = mutable.ListBuffer.empty[Instruction]
+    val unitLen = 100
 
-    def goForward(): Unit
+    def turnLeft(degrees: Int): Unit = movesSoFar += Turn(degrees.degrees)
 
-    def goBackward(): Unit
+    def turnRight(degrees: Int): Unit =  movesSoFar += Turn(- degrees.degrees)
 
-    def draw(): Unit
+    def goForward(): Unit = movesSoFar += forward(unitLen)
+
+    def goBackward(): Unit = movesSoFar ++=
+      turn(180.degrees) :: forward(unitLen) :: turn(-180.degrees) :: Nil
+
+    def draw(): Unit = Turtle.draw(movesSoFar.toList).draw()
   }
+
+  // test to display turtle graphics
+  val t = new Turtle {}
+  t.goForward()
+  t.turnLeft(90)
+  t.goForward()
+  t.turnLeft(90)
+  t.goBackward()
+  t.draw()
 }

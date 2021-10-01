@@ -54,7 +54,7 @@ libraryDependencies ++= Seq(
   "ch.qos.logback" % "logback-classic" % "1.2.6",
 
   // This pulls in cats and fs2
-  "org.creativescala" %% "doodle" % "0.9.25",
+  "org.creativescala" %% "doodle-turtle" % "0.9.25",
 
   // scalaz
   "dev.zio" %% "zio" % V.ZIO,
