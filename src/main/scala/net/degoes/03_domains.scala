@@ -3,30 +3,9 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, a functional domain consists of three things:
- *
- * 1. A functional model, which is an immutable data type that models a 
- *    solution to problems in the domain of interest.
- *
- * 2. Constructors that allow constructing solutions to simple problems.
- *
- * 3. Operators that solving more complex problems by transforming
- *    and combining solutions for subproblems.
- *
- * Functional domains allow modeling solutions to problems in a specific domain.
- * Done properly, a small set of primitives can be so powerful, they can be used
- * compositionally to describe all possible solutions in that domain.
- *
- * A functional domain can be regarded as a type of internal domain-specific
- * language (DSL), which is designed specifically for expressing compositional
- * solutions to some category of domain problems.
- *
- * ZIO is an example of a domain for input/output, whose effect type lets you
- * solve async/concurrent/resourceful problems, and whose operators let you
- * assemble large solutions from small solutions.
- *
- * In this section, you'll learn about designing domains using ADTS,
- * constructors, and composable operators.
+ * In the last section, you explored operators. In this section, you will have
+ * a chance to flesh out the design of full functional domains, which include
+ * models, constructors, and operators.
  */
 
 /**
@@ -42,7 +21,7 @@ object spreadsheet {
 
     def valueAt(col: Int, row: Int): CalculatedValue
 
-    final def scan(range: Range): Stream[Cell] = {
+    final def scan(range: Range): LazyList[Cell] = {
       val minRow = range.minRow.getOrElse(0)
       val maxRow = range.maxRow.getOrElse(rows - 1)
 
@@ -50,8 +29,8 @@ object spreadsheet {
       val maxCol = range.maxCol.getOrElse(cols - 1)
 
       (for {
-        col <- (minCol to maxCol).toStream
-        row <- (minRow to maxRow).toStream
+        col <- (minCol to maxCol).to(LazyList)
+        row <- (minRow to maxRow).to(LazyList)
       } yield Cell(col, row, valueAt(col, row)))
     }
   }
@@ -98,7 +77,7 @@ object spreadsheet {
     /**
      * EXERCISE 4
      *
-     * Add a binary operator `-` that returns a new `CalculatedValue` that is the difere;nce of the
+     * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
      * two calculated values.
      */
     def -(that: CalculatedValue): CalculatedValue = ???

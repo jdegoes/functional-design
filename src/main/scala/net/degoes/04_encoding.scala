@@ -24,28 +24,30 @@ package net.degoes
  * executable code or into another lower-level domain, which provides the
  * capabilities modeled by the functional domain.
  *
- * Executable encodings are "open": anyone can add new constructors and
- * operators, without updating existing code. On the other hand, executable
- * encodings are not "introspectable": because they are not data, but rather,
- * opaque executable machinery, they cannot be serialized, optimized, or
- * converted to other encodings.
+ * Executable encodings are "open" for new constructors and operators: anyone
+ * can add new constructors and operators, without updating existing code. On
+ * the other hand, executable encodings are not "introspectable": because they
+ * are not data, but rather, opaque executable machinery, it is not possible to
+ * add new ways to execute the models without rewriting all constructors and
+ * operators.
  *
- * Abstract encodings are "introspectable": because they are pure data, they
- * can be serialized, optimized, and converted to other encodings, assuming
- * their component parts have the same properties (not all abstract encodings
- * do; if you embed a function inside an abstract encoding, it's becomes
- * opaque). On the other hand, abstract encodings are "closed": no one can add
- * new constructors or operators, without updating existing code.
+ * Declarative encodings are "closed" for new constructors and operators: no
+ * one can add new constructors and operators, without updating existing code.
+ * Yet, because they are pure data, it is easy to add new ways to execute the
+ * models, for example, serializers, optimizers, converters, and so forth,
+ * assuming their component parts have the same properties (not all
+ * declarative encodings do; if you embed a function inside a declarative
+ * encoding, it becomes opaque).
  *
  * Summarizing the difference between executable and abstract encodings:
  *
- *  - Executable encodings have open constructors/operators, but closed
- *    interpreters.
- *  - Declarative encodings have closed constructors/operators, but open
- *    interpreters.
+ *  - Executable encodings have unbounded constructors/operators, but a fixed
+ *    number of ways to execute them.
+ *  - Declarative encodings have fixed constructors/operators, but an unbounded
+ *    number of ways to execute them.
  *
- * Note: Tagless-final an executable encoding, but where by making the "solutions"
- * polymorphic, the choice of executor can be deferred arbitrarily.
+ * Note: Tagless-final is an executable encoding, but one where, by making the
+ * "solutions" polymorphic, the choice of executor can be deferred arbitrarily.
  *
  * Legacy code prefers executable encodings; while many benefits of Functional
  * Design can be seen best using abstract encodings.
@@ -258,7 +260,7 @@ object spreadsheet2 {
 
     def valueAt(col: Int, row: Int): CalculatedValue
 
-    final def scan(range: Range): Stream[Cell] = {
+    final def scan(range: Range): LazyList[Cell] = {
       val minRow = range.minRow.getOrElse(0)
       val maxRow = range.maxRow.getOrElse(rows - 1)
 
@@ -266,8 +268,8 @@ object spreadsheet2 {
       val maxCol = range.maxCol.getOrElse(cols - 1)
 
       (for {
-        col <- (minCol to maxCol).toStream
-        row <- (minRow to maxRow).toStream
+        col <- (minCol to maxCol).to(LazyList)
+        row <- (minRow to maxRow).to(LazyList)
       } yield Cell(col, row, valueAt(col, row)))
     }
   }
@@ -346,7 +348,11 @@ object ecommerce_marketing {
 
   sealed trait Attribute
   object Attribute {
-    case object EventType      extends Attribute
+    case object EventType extends Attribute {
+      val AddItem    = "add_item"
+      val RemoveItem = "remove_item"
+      val Abandon    = "abandon"
+    }
     case object UserName       extends Attribute
     case object ShoppingCartId extends Attribute
     case object Email          extends Attribute
@@ -363,42 +369,54 @@ object ecommerce_marketing {
   }
 
   object abstract_encoding {
-    sealed trait Pattern { self =>
-      def +(that: Pattern): Pattern = Pattern.Sequence(self, that)
+    sealed trait HistoryPattern { self =>
+      def *>(that: HistoryPattern): HistoryPattern = HistoryPattern.Sequence(self, that)
 
-      def atLeast(n: Int): Pattern = repeat(Some(n), None)
+      def atLeast(n: Int): HistoryPattern = repeat(Some(n), None)
 
-      def atMost(n: Int): Pattern = repeat(None, Some(n))
+      def atMost(n: Int): HistoryPattern = repeat(None, Some(n))
 
-      def between(min: Int, max: Int): Pattern = repeat(Some(min), Some(max))
+      def between(min: Int, max: Int): HistoryPattern = repeat(Some(min), Some(max))
 
-      def repeat(min: Option[Int], max: Option[Int]): Pattern = Pattern.Repeat(self, min, max)
+      def repeat(min: Option[Int], max: Option[Int]): HistoryPattern = HistoryPattern.Repeat(self, min, max)
     }
-    object Pattern {
-      case object HasAnyAttribute                                                   extends Pattern
-      final case class HasAttribute(attr: Attribute)                                extends Pattern
-      final case class HasValue(attr: Attribute, value: Value)                      extends Pattern
-      final case class Sequence(first: Pattern, second: Pattern)                    extends Pattern
-      final case class Repeat(pattern: Pattern, min: Option[Int], max: Option[Int]) extends Pattern
+    object HistoryPattern {
+      case object Matches                                                                  extends HistoryPattern
+      final case class EventP(eventPattern: EventPattern)                                  extends HistoryPattern
+      final case class Sequence(first: HistoryPattern, second: HistoryPattern)             extends HistoryPattern
+      final case class Repeat(pattern: HistoryPattern, min: Option[Int], max: Option[Int]) extends HistoryPattern
 
-      val hasAnyAttribute: Pattern = HasAnyAttribute
+      val matches: HistoryPattern = Matches
 
-      def hasAttribute(attr: Attribute): Pattern = HasAttribute(attr)
+      def event(eventPattern: EventPattern): HistoryPattern = EventP(eventPattern)
 
-      def hasValue(attr: Attribute, value: Value): Pattern = HasValue(attr, value)
+      def eventType(eventType: String): HistoryPattern =
+        event(EventPattern.HasValue(Attribute.EventType, Value.Str(eventType)))
     }
-    import Pattern._
+    sealed trait EventPattern { self =>
+      import EventPattern._
 
-    val example =
-      hasAnyAttribute +
-        hasAttribute(Attribute.ShoppingCartId)
+      def matches(event: Event): Boolean =
+        self match {
+          case Matches               => true
+          case HasValue(attr, value) => event.get(attr) == Some(value)
+        }
+    }
+    object EventPattern {
+      case object Matches                                      extends EventPattern
+      final case class HasValue(attr: Attribute, value: Value) extends EventPattern
 
-    def matches(history: List[Event], pattern: Pattern): Boolean = {
-      def loop(history: List[Event], pattern: Pattern): (List[Event], Boolean) =
+    }
+    import HistoryPattern._
+    import Attribute.EventType
+
+    val example = eventType(EventType.AddItem) *> eventType(EventType.Abandon)
+
+    def matches(history: List[Event], pattern: HistoryPattern): Boolean = {
+      def loop(history: List[Event], pattern: HistoryPattern): (List[Event], Boolean) =
         (pattern, history.headOption) match {
-          case (HasAttribute(attr), Some(event))    => (history.tail, event.contains(attr))
-          case (HasAnyAttribute, Some(event))       => (history.tail, true)
-          case (HasValue(attr, value), Some(event)) => (history.tail, event.get(attr).map(_ == value).getOrElse(false))
+          case (EventP(eventPattern), Some(event)) => (history.tail, eventPattern.matches(event))
+          case (EventP(_), None)                   => (history.tail, false)
           case (Sequence(first, second), _) =>
             val (leftHistory, leftMatch) = loop(history, first)
 
@@ -437,15 +455,6 @@ object ecommerce_marketing {
    * a match.
    */
   object executable_encoding {
-    type Pattern
-    object Pattern {
-      val hasAnyAttribute: Pattern = ???
-
-      def hasAttribute(attr: Attribute): Pattern = ???
-
-      def hasValue(attr: Attribute, value: Value): Pattern = ???
-
-      def partial(pf: PartialFunction[List[Event], (List[Event], Boolean)]): Pattern = ???
-    }
+    type HistoryPattern
   }
 }

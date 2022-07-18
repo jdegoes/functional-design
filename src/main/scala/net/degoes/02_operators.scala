@@ -3,8 +3,31 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, immutable values often model solutions to a problem,
- * and they are transformed and composed using _operators_.
+ * In Functional Design, a functional domain consists of three things:
+ *
+ * 1. MODELS. A functional model, which is an immutable data type that models a
+ *    solution to problems in the domain of interest.
+ *
+ * 2. CONSTRUCTORS. Constructors that allow constructing solutions to simple problems.
+ *
+ * 3. OPERATORS. Operators that solving more complex problems by transforming
+ *    and combining solutions for subproblems.
+ *
+ * Functional domains allow modeling solutions to problems in a specific domain.
+ * Done properly, a small set of primitives can be so powerful, they can be used
+ * compositionally to describe all possible solutions in that domain.
+ *
+ * A functional domain can be regarded as a type of internal domain-specific
+ * language (DSL), which is designed specifically for expressing compositional
+ * solutions to some category of domain problems.
+ *
+ * ZIO is an example of a domain for input/output, whose effect type lets you
+ * solve async/concurrent/resourceful problems, and whose operators let you
+ * assemble large solutions from small solutions.
+ *
+ * In this section, you'll explore the role of operators in Functional Design.
+ *
+ * OPERATORS
  *
  * Operators come in two primary flavors: unary operators, which are the ones
  * that transform solutions into other solutions values with desired
@@ -19,9 +42,6 @@ package net.degoes
  * Composable operators allow you to generate a large variety of solutions out
  * of a smaller number of primitives, simply transforming and composing other
  * solutions.
- *
- * In this section, you'll see examples of composable operators on a variety
- * of immutable values, each of which models a solution to some problem.
  */
 
 /**
@@ -81,7 +101,7 @@ object input_stream {
    * EXERCISE 4
    *
    * Construct an IStream that will read the data from `primary`,
-   * but if that fails, it will assemble the data from all the 
+   * but if that fails, it will assemble the data from all the
    * `fragments` by concatenating them into one. Regardless of
    * where the data comes from, everything should be buffered.
    */

@@ -1,521 +1,105 @@
 package net.degoes
 
+import scala.util.matching.Regex
+
 /*
  * INTRODUCTION
  *
  * In Functional Design, operators that transform and compose values in a
  * domain often fall into pre-existing patterns.
  *
- * In this section, you'll learn to identify these patterns.
+ * In this section, you'll learn to identify these patterns, first in
+ * untyped functional domains, and then in typed functional domains.
  *
  */
 
 /**
- * BINARY COMPOSITION PATTERNS FOR VALUES - EXERCISE SET 1
+ * UNTYPED FUNCTIONAL DOMAINS - EXERCISE SET 2
  */
-object binary_values {
-  object Exercise1 {
+object untyped {
+  lazy val nameValidation =
+    JsonValidation.start.field("name").string("""\w+(\s+(\w|\s)+)+""".r)
+
+  sealed trait JsonValidation { self =>
+    def element(index: Int): JsonValidation = JsonValidation.DescendElement(self, index)
+
+    def elements: JsonValidation = JsonValidation.DescendElements(self)
+
+    def field(name: String): JsonValidation = JsonValidation.DescendField(self, name)
+
+    def number: JsonValidation = JsonValidation.ValidateNumber(self, None, None)
+
+    def numberBetween(min: BigDecimal, max: BigDecimal): JsonValidation =
+      JsonValidation.ValidateNumber(self, Some(min), Some(max))
+
+    def string(regex: Regex): JsonValidation = JsonValidation.ValidateString(self, regex)
 
     /**
-     * EXERCISE 1
+     * EXERCISE
      *
-     * Choose a type such that you can implement the `compose` function in
-     * such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) == compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`.
+     * Design a binary operator with the meaning of sequential composition.
+     * For example, `JsonValidation.start.field("address") ++
+     * JsonValidation.start.field("street")` would first validate that a field
+     * called `address` exists, and then would descend into that field value
+     * to validate that a field called `street` exists within it.
      */
-    type SomeType
+    def ++(that: JsonValidation): JsonValidation = ???
 
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    /**
+     * EXERCISE
+     *
+     * Design a binary operator with the meaning of parallel composition.
+     * The meaning of `a && b` should be that `a` is validated, and also `b`
+     * is validated (starting from the root of the JSON object).
+     */
+    def &&(that: JsonValidation): JsonValidation = ???
+
+    /**
+     * EXERCISE
+     *
+     * Design a binary operator with the meaning of fallback. The meaning of
+     * `a || b` should be that `a` is validated, but if the validation fails,
+     * then `b` is validated (starting from the root of the JSON object).
+     */
+    def ||(that: JsonValidation): JsonValidation = ???
+  }
+  object JsonValidation {
+    case object Start                                                   extends JsonValidation
+    final case class DescendField(parent: JsonValidation, name: String) extends JsonValidation
+    final case class DescendElement(parent: JsonValidation, index: Int) extends JsonValidation
+    final case class DescendElements(parent: JsonValidation)            extends JsonValidation
+    final case class ValidateNumber(parent: JsonValidation, min: Option[BigDecimal], max: Option[BigDecimal])
+        extends JsonValidation
+    final case class ValidateString(parent: JsonValidation, pattern: Regex) extends JsonValidation
+
+    def start: JsonValidation = Start
   }
 
-  object Exercise2 {
-
-    /**
-     * EXERCISE 2
-     *
-     * Choose a different type such that you can implement the `compose`
-     * function in such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) == compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`.
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+  sealed trait Json
+  object Json {
+    final case class Object(fields: Map[String, Json]) extends Json
+    final case class Array(elements: List[Json])       extends Json
+    final case class String(value: String)             extends Json
+    final case class Number(value: BigDecimal)         extends Json
+    final case class Boolean(value: Boolean)           extends Json
+    case object Null                                   extends Json
   }
 
-  object Exercise3 {
+  final case class JsonValidator(validation: JsonValidation) {
 
     /**
-     * EXERCISE 3
+     * EXERCISE
      *
-     * Choose a type such that you can implement the `compose`
-     * function in such a way that:
-     *
-     * {{{
-     * compose(a, b) == compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`.
+     * Implement the following executor which validates JSON.
      */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise4 {
-
-    /**
-     * EXERCISE 4
-     *
-     * Choose a different type such that you can implement the `compose`
-     * function in such a way that:
-     *
-     * {{{
-     * compose(a, b) == compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`.
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise5 {
-
-    /**
-     * EXERCISE 5
-     *
-     * Choose or create a data type such that your implementation
-     * of `compose` represents modeling "both". For example, if you have
-     * a data type that represents a query, then this `compose` could
-     * combine two queries into one query, such that both results would
-     * be queried when the model is executed.
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise6 {
-
-    /**
-     * EXERCISE 6
-     *
-     * Choose or create a different type such that your implementation
-     * of `compose` represents modeling "both".
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise7 {
-
-    /**
-     * EXERCISE 7
-     *
-     * Choose or create a data type such that your implementation
-     * of `compose` represents modeling "or". For example, if you have
-     * a data type that represents a query, then this `compose` could
-     * model running one query, but if it fails, running another.
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise8 {
-
-    /**
-     * EXERCISE 8
-     *
-     * Choose or create a different type such that your implementation
-     * of `compose` represents modeling "or".
-     */
-    type SomeType
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise9 {
-
-    /**
-     * EXERCISE 9
-     *
-     * Choose a type and a value called `identity` such that you can implement
-     * the `compose` function in such a way that:
-     *
-     * {{{
-     * compose(a, identity) == compose(identity, a) == a
-     * }}}
-     *
-     * for all `a`.
-     */
-    type SomeType
-
-    def identity: SomeType = ???
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
-  }
-
-  object Exercise10 {
-
-    /**
-     * EXERCISE 10
-     *
-     * Choose a different type and a value called `identity` such that you can
-     * implement the `compose` function in such a way that:
-     *
-     * {{{
-     * compose(a, identity) == compose(identity, a) == a
-     * }}}
-     *
-     * for all `a`.
-     */
-    type SomeType
-
-    def identity: SomeType = ???
-
-    def compose(left: SomeType, right: SomeType): SomeType = ???
+    def validateWith(json: Json): Either[String, Unit] = ???
   }
 }
 
 /**
- * BINARY COMPOSITION PATTERNS FOR TYPE CONSTRUCTORS - EXERCISE SET 2
+ * TYPED FUNCTIONAL DOMAINS - EXERCISE SET 2
  */
-object binary_tcs {
-  object Exercise1 {
-
-    /**
-     * EXERCISE 1
-     *
-     * Choose a type such that you can implement the `compose` function in
-     * such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) ~ compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise2 {
-
-    /**
-     * EXERCISE 2
-     *
-     * Choose a different type such that you can implement the `compose` function
-     * in such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) ~ compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise3 {
-
-    /**
-     * EXERCISE 3
-     *
-     * Choose a type such that you can implement the `compose` function in
-     * such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) ~ compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise4 {
-
-    /**
-     * EXERCISE 4
-     *
-     * Choose a different type such that you can implement the `compose` function
-     * in such a way that:
-     *
-     * {{{
-     * compose(compose(a, b), c) ~ compose(a, compose(b, c))
-     * }}}
-     *
-     * for all `a`, `b`, `c`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise5 {
-
-    /**
-     * EXERCISE 5
-     *
-     * Choose a type such that you can implement the `compose` function in
-     * such a way that:
-     *
-     * {{{
-     * compose(a, b) ~ compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise6 {
-
-    /**
-     * EXERCISE 6
-     *
-     * Choose a different type such that you can implement the `compose` function
-     * in such a way that:
-     *
-     * {{{
-     * compose(a, b) ~ compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise7 {
-
-    /**
-     * EXERCISE 7
-     *
-     * Choose a type such that you can implement the `compose` function in
-     * such a way that:
-     *
-     * {{{
-     * compose(a, b) ~ compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise8 {
-
-    /**
-     * EXERCISE 8
-     *
-     * Choose a different type such that you can implement the `compose` function
-     * in such a way that:
-     *
-     * {{{
-     * compose(a, b) ~ compose(b, a)
-     * }}}
-     *
-     * for all `a`, `b`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise9 {
-
-    /**
-     * EXERCISE 9
-     *
-     * Choose or create a data type such that your implementation
-     * of `compose` represents modeling "both". For example, if you have
-     * a data type that represents a query, then this `compose` could
-     * combine two queries into one query, such that both results would
-     * be queried when the model is executed.
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise10 {
-
-    /**
-     * EXERCISE 10
-     *
-     * Choose or create a different type such that your implementation
-     * of `compose` represents modeling "both".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise11 {
-
-    /**
-     * EXERCISE 11
-     *
-     * Choose or create a data type such that your implementation
-     * of `compose` represents modeling "or". For example, if you have
-     * a data type that represents a query, then this `compose` could
-     * model running one query, but if it fails, running another.
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise12 {
-
-    /**
-     * EXERCISE 12
-     *
-     * Choose or create a different type such that your implementation
-     * of `compose` represents modeling "or".
-     */
-    type SomeType[A]
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-  object Exercise13 {
-
-    /**
-     * EXERCISE 13
-     *
-     * Choose or create a type `SomeType` and a value called `identity` such
-     * that you can implement the `compose` function in such a way that:
-     *
-     * {{{
-     * compose(a, identity) ~ compose(identity, a) ~ a
-     * }}}
-     *
-     * for all `a`, where `~` means "equivalent to".
-     */
-    type SomeType[A]
-
-    def identity: SomeType[Any] = ???
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[(A, B)] = ???
-  }
-
-  object Exercise14 {
-
-    /**
-     * EXERCISE 14
-     *
-     * Choose or create a type `SomeType` and a value called `identity` such
-     * that you can implement the `compose` function in such a way that:
-     *
-     * {{{
-     * compose(a, identity) ~ compose(identity, a) ~ a
-     * }}}
-     *
-     * for all `a`, where `~` means "equivalent to".
-     *
-     * Note that `Either[A, Nothing]` is equivalent to `A`, and
-     * `Either[Nothing, A]` is equivalent to `A`.
-     */
-    type SomeType[A]
-
-    def identity: SomeType[Nothing] = ???
-
-    def compose[A, B](left: SomeType[A], right: SomeType[B]): SomeType[Either[A, B]] = ???
-  }
-
-}
-
-/**
- * IMPERATIVE PATTERNS FOR VALUES - EXERCISE SET 3
- */
-object imperative_values {
-  trait Exercise1 {
-
-    /**
-     * EXERCISE 1
-     *
-     * Choose or create a data type such that you can implement `andThen` in
-     * such a way that it models sequential composition.
-     */
-    type SomeType
-
-    def andThen(first: SomeType, second: SomeType): SomeType = ???
-  }
-
-  trait Exercise2 {
-
-    /**
-     * EXERCISE 2
-     *
-     * Choose or create a different type such that you can implement `andThen` in
-     * such a way that it models sequential composition.
-     */
-    type SomeType
-
-    def andThen(first: SomeType, second: SomeType): SomeType
-  }
-}
-
-/**
- * IMPERATIVE PATTERNS FOR TYPE CONSTRUCTORS - EXERCISE SET 4
- */
-object imperative_tcs {
-  trait Exercise1 {
-
-    /**
-     * EXERCISE 1
-     *
-     * Choose or create a data type such that you can implement `andThen` in
-     * such a way that it models sequential composition.
-     */
-    type SomeType[A]
-
-    def andThen[A, B](first: SomeType[A], second: A => SomeType[B]): SomeType[B] = ???
-  }
-
-  trait Exercise2 {
-
-    /**
-     * EXERCISE 2
-     *
-     * Choose or create a different type such that you can implement `andThen` in
-     * such a way that it models sequential composition.
-     */
-    type SomeType[A]
-
-    def andThen[A, B](first: SomeType[A], second: A => SomeType[B]): SomeType[B]
-  }
-}
-
-/**
- * RECIPES - GRADUATION PROJECT
- */
-object recipes {
+object typed {
   sealed trait Baked[+A]
   object Baked {
     final case class Burnt[A](value: A)         extends Baked[A]
@@ -534,27 +118,42 @@ object recipes {
   sealed trait Recipe[+A] { self =>
 
     /**
+     * Uses all the ingredients in a recipe by baking them to produce a
+     * baked result.
+     */
+    def bake(temp: Int, time: Int): Recipe[Baked[A]] = Recipe.Bake(self, temp, time)
+
+    /**
      * EXERCISE 1
      *
-     * Implement a `map` operation that allows changing what a recipe produces.
+     * Implement a `both` operation that allows combining two recipes into
+     * one, producing both items in a tuple.
+     *
+     * NOTE: Be sure to update the `bake` method below so that you can make
+     * recipes that use your new operation.
      */
-    def map[B](f: A => B): Recipe[B] = ???
+    def both[B](that: Recipe[B]): Recipe[(A, B)] = ???
 
     /**
      * EXERCISE 2
      *
-     * Implement a `combine` operation that allows combining two recipes into
-     * one, producing both items in a tuple.
+     * Implement a `either` operation that allows trying a backup recipe,
+     * in case this recipe ends in disaster.
+     *
+     * NOTE: Be sure to update the `bake` method below so that you can make
+     * recipes that use your new operation.
      */
-    def combine[B](that: Recipe[B]): Recipe[(A, B)] = ???
+    def either[B](that: Recipe[B]): Recipe[Either[A, B]] = ???
 
     /**
      * EXERCISE 3
      *
-     * Implement a `tryOrElse` operation that allows trying a backup recipe,
-     * in case this recipe ends in disaster.
+     * Implement a `map` operation that allows changing what a recipe produces.
+     *
+     * NOTE: Be sure to update the `bake` method below so that you can make
+     * recipes that use your new operation.
      */
-    def tryOrElse[B](that: Recipe[B]): Recipe[Either[A, B]] = ???
+    def map[B](f: A => B): Recipe[B] = ???
 
     /**
      * EXERCISE 4
@@ -562,38 +161,47 @@ object recipes {
      * Implement a `flatMap` operation that allows deciding which recipe to
      * make after this recipe has produced its item.
      *
-     * NOTE: Be sure to update the `make` method below so that you can make
+     * NOTE: Be sure to update the `bake` method below so that you can make
      * recipes that use your new operation.
      */
     def flatMap[B](f: A => Recipe[B]): Recipe[B] = ???
-
-    def bake(temp: Int, time: Int): Recipe[Baked[A]] = Recipe.Bake(self, temp, time)
   }
   object Recipe {
-    case object Disaster                                              extends Recipe[Nothing]
-    final case class AddIngredient(ingredient: Ingredient)            extends Recipe[Ingredient]
-    final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]]
+    case object Disaster                                   extends Recipe[Nothing]
+    final case class AddIngredient(ingredient: Ingredient) extends Recipe[Unit]
+    final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]] {
+      type Type = A
+    }
 
-    def addIngredient(ingredient: Ingredient): Recipe[Ingredient] = AddIngredient(ingredient)
+    def addIngredient(ingredient: Ingredient): Recipe[Unit] = AddIngredient(ingredient)
 
     def disaster: Recipe[Nothing] = Disaster
   }
   import Recipe._
 
-  def make[A](recipe: Recipe[A]): A =
-    recipe match {
-      case Disaster                  => throw new Exception("Uh no, utter disaster!")
-      case AddIngredient(ingredient) => println(s"Adding ${ingredient}"); ingredient
-      case Bake(recipe, temp, time) =>
-        val a = make(recipe)
+  def bake[Out](recipe: Recipe[Out]): Out = {
+    def loop[A](ingredients: Vector[Ingredient], recipe: Recipe[A]): (Vector[Ingredient], A) =
+      recipe match {
+        case Disaster                  => throw new Exception("Uh no, utter disaster!")
+        case AddIngredient(ingredient) => (ingredients :+ ingredient, ())
+        case bake @ Bake(recipe, temp, time) =>
+          val (leftover, a) = loop[bake.Type](ingredients, recipe)
 
-        println(s"Baking ${a} for ${time} minutes at ${temp} temperature")
+          println(s"Baking ${a} for ${time} minutes at ${temp} temperature")
+          println("Ingredients: ")
+          println(ingredients.mkString("\n"))
 
-        if (time * temp < 1000) Baked.Undercooked(a)
-        else if (time * temp > 6000) Baked.Burnt(a)
-        else Baked.CookedPerfect(a)
-    }
+          if (time * temp < 1000) (Vector(), Baked.Undercooked(a))
+          else if (time * temp > 6000) (Vector(), Baked.Burnt(a))
+          else (Vector(), Baked.CookedPerfect(a))
+      }
 
+    val (leftover, a) = loop(Vector(), recipe)
+
+    println(s"Leftover ingredients: ${leftover}")
+
+    a
+  }
   final case class Cake(ingredients: List[Ingredient])
 
   /**

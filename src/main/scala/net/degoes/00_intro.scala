@@ -1,23 +1,22 @@
 package net.degoes
 
 import zio._
-import zio.duration._
 
 /*
  * INTRODUCTION
  *
  * _Functional Design_ is a technique for modeling solutions to problems in some
- * domain using _immutable values_, with a small but rich set of primitives
- * for constructing, transforming, and composing solutions in order to solve
- * even the most complex problems easily, with high testability and
+ * domain using _immutable values_ (_models_), with a small but rich set of
+ * primitives for constructing, transforming, and composing solutions in order
+ * to solve even the most complex problems easily, with high testability and
  * reasonability.
  *
  * Functional Design embraces the composability, immutability, and static
  * type safety afforded by functional programming, and applies it to solve
- * real world problems, close to business domains, all without the esoteric
- * type classes, category theory jargon, confusing and undiscoverable implicits,
- * monad transformers, and other constructs common in the early days of
- * functional Scala.
+ * real world problems, some of which may be close to business domains, all
+ * without the esoteric type classes, category theory jargon, confusing and
+ * undiscoverable implicits, monad transformers, and other constructs common
+ * in the early days of functional Scala.
  *
  * Functional Design has been used for a number of open source Scala libraries,
  * including ZIO. The techniques provide very powerful, concise, and type-safe
@@ -93,7 +92,7 @@ object tour {
     val sherlock = User("Sherlock Holmes", Address("Baker Street"))
 
     /**
-     * Composes a lense for 'address' in 'User' together with a lens for
+     * Composes a lens for 'address' in 'User' together with a lens for
      * 'street' in 'Address', generating a lens that accesses '.address.street'
      * inside a `User` object. Then uses the lens to make the street name
      * lower case inside the `sherlock` user.
@@ -112,7 +111,7 @@ object tour {
     type Input = String
 
     /**
-     * The start of a parser that parses emails.
+     * Through composition and transformation, parsers an email from simpler pieces.
      */
     lazy val email = username + Parser.char('@') + server
 
