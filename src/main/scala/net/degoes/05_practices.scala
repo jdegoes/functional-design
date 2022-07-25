@@ -76,7 +76,7 @@ object email_filter3 {
 
     val always: EmailFilter = Always
 
-    val never: EmailFilter = Always
+    val never: EmailFilter = Never
 
     def senderIs(sender: Address): EmailFilter = SenderEquals(sender)
 
