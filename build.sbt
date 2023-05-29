@@ -1,7 +1,7 @@
 import sbt._
 
-val ZIOVersion = "2.0.0"
-val ScalaVersionConstant = "2.13.8"
+val ZIOVersion = "2.0.9"
+val ScalaVersionConstant = "3.3.0-RC6"
 
 lazy val functionalDesign = (project in file(".")).
   settings (
@@ -15,13 +15,13 @@ lazy val functionalDesign = (project in file(".")).
 /* scala versions and options */
 scalaVersion := ScalaVersionConstant
 
+scalacOptions ++= Seq("-rewrite", "-indent")
+
 // These options will be used for *all* versions.
 scalacOptions ++= Seq(
   "-deprecation"
   , "-unchecked"
   , "-encoding", "UTF-8"
-  , "-Xlint"
-  , "-Xverify"
   , "-feature"
   , "-language:_"
   , "-Wconf:msg=a type was inferred to be `Any`:silent"

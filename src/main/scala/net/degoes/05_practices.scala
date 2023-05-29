@@ -32,34 +32,30 @@ package net.degoes
  *
  */
 
-/**
- * ORTHOGONALITY - EXERCISE SET 1
- */
-object email_filter3 {
+/** ORTHOGONALITY - EXERCISE SET 1
+  */
+object email_filter3:
   final case class Address(emailAddress: String)
   final case class Email(sender: Address, to: List[Address], subject: String, body: String)
 
-  /**
-   * EXERCISE 1
-   *
-   * In the following model, which describes an email filter, there are many
-   * primitives with overlapping responsibilities. Find the smallest possible
-   * set of primitive operators and constructors, without deleting any
-   * constructors or operators (you may implement them in terms of primitives).
-   *
-   * NOTE: You may *not* use a final encoding, which would allow you to
-   * collapse everything down to one primitive.
-   */
-  sealed trait EmailFilter { self =>
+  /** EXERCISE 1
+    *
+    * In the following model, which describes an email filter, there are many primitives with overlapping
+    * responsibilities. Find the smallest possible set of primitive operators and constructors, without deleting any
+    * constructors or operators (you may implement them in terms of primitives).
+    *
+    * NOTE: You may *not* use a final encoding, which would allow you to collapse everything down to one primitive.
+    */
+  sealed trait EmailFilter:
+    self =>
     def &&(that: EmailFilter): EmailFilter = EmailFilter.And(self, that)
 
     def ||(that: EmailFilter): EmailFilter = EmailFilter.InclusiveOr(self, that)
 
     def ^^(that: EmailFilter): EmailFilter = EmailFilter.ExclusiveOr(self, that)
-  }
-  object EmailFilter {
-    final case object Always                                            extends EmailFilter
-    final case object Never                                             extends EmailFilter
+  object EmailFilter:
+    case object Always                                                  extends EmailFilter
+    case object Never                                                   extends EmailFilter
     final case class And(left: EmailFilter, right: EmailFilter)         extends EmailFilter
     final case class InclusiveOr(left: EmailFilter, right: EmailFilter) extends EmailFilter
     final case class ExclusiveOr(left: EmailFilter, right: EmailFilter) extends EmailFilter
@@ -97,21 +93,20 @@ object email_filter3 {
     def subjectContains(phrase: String): EmailFilter = SubjectContains(phrase)
 
     def subjectDoesNotContain(phrase: String): EmailFilter = SubjectNotContains(phrase)
-  }
-}
+  end EmailFilter
+end email_filter3
 
-/**
- * COMPOSABILITY - EXERCISE SET 2
- */
-object ui_components {
+/** COMPOSABILITY - EXERCISE SET 2
+  */
+object ui_components:
 
-  /**
-   * EXERCISE 1
-   *
-   * The following API is not composable—there is no domain. Introduce a
-   * domain with elements, constructors, and composable operators.
-   */
-  trait Turtle { self =>
+  /** EXERCISE 1
+    *
+    * The following API is not composable—there is no domain. Introduce a domain with elements, constructors, and
+    * composable operators.
+    */
+  trait Turtle:
+    self =>
     def turnLeft(degrees: Int): Unit
 
     def turnRight(degrees: Int): Unit
@@ -121,5 +116,3 @@ object ui_components {
     def goBackward(): Unit
 
     def draw(): Unit
-  }
-}
