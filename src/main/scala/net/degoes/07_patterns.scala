@@ -193,5 +193,20 @@ object typed:
 end typed
 
 object stack:
+  enum StackVM[T <: Tuple]:
+    case Empty                                           extends StackVM[EmptyTuple]
+    case Push[A, T <: Tuple](value: A, prev: StackVM[T]) extends StackVM[A *: T]
+    case Add[T <: Tuple, T2 <: Tuple](prev: StackVM[T])(using T <:< Int *: Int *: T2)
+        extends StackVM[Int *: T2]
+
+    def self = this
+
+    def push[A](a: A): StackVM[A *: T] = StackVM.Push(a, self)
+
+    def add[T2 <: Tuple](using T <:< Int *: Int *: T2): StackVM[Int *: T2] = Add(self)
+
+  def empty: StackVM[EmptyTuple] = StackVM.Empty
+
+  empty.push(1).push(2).add
 
 end stack
