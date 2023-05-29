@@ -21,8 +21,9 @@ object resources:
 
   /** EXERCISE 1
     *
-    * Design a data type that can model a resource. The data type should be equipped with operators, which allow
-    * transforming and composing resources. You can use either the declarative or executable encodings.
+    * Design a data type that can model a resource. The data type should be equipped with operators,
+    * which allow transforming and composing resources. You can use either the declarative or
+    * executable encodings.
     */
   trait Resource[+A]
   object Resource
@@ -31,27 +32,28 @@ object resources:
   */
 object calendar:
   final case class HourOfDay(value: Int):
-    def to(that: HourOfDay): LazyList[HourOfDay] = (value to that.value).to(LazyList).map(HourOfDay(_))
+    def to(that: HourOfDay): LazyList[HourOfDay] =
+      (value to that.value).to(LazyList).map(HourOfDay(_))
 
-    def until(that: HourOfDay): LazyList[HourOfDay] = (value until that.value).to(LazyList).map(HourOfDay(_))
+    def until(that: HourOfDay): LazyList[HourOfDay] =
+      (value until that.value).to(LazyList).map(HourOfDay(_))
   object HourOfDay:
     val min = HourOfDay(0)
     val max = HourOfDay(24)
 
-  sealed trait DayOfWeek
-  object DayOfWeek:
-    case object Sunday    extends DayOfWeek
-    case object Monday    extends DayOfWeek
-    case object Tuesday   extends DayOfWeek
-    case object Wednesday extends DayOfWeek
-    case object Thursday  extends DayOfWeek
-    case object Friday    extends DayOfWeek
-    case object Saturday  extends DayOfWeek
+  enum DayOfWeek:
+    case Sunday
+    case Monday
+    case Tuesday
+    case Wednesday
+    case Thursday
+    case Friday
+    case Saturday
 
   /** EXERCISE 1
     *
-    * Explore the structure of `CalendarAppointment` by deciding what composable, orthogonal operations to add to the
-    * data type.
+    * Explore the structure of `CalendarAppointment` by deciding what composable, orthogonal
+    * operations to add to the data type.
     */
   final case class CalendarAppointment(start: HourOfDay, end: HourOfDay):
     self =>
@@ -62,8 +64,8 @@ object calendar:
 
   /** EXERCISE 2
     *
-    * Explore the structure of `DailySchedule` by deciding what composable, orthogonal operations to add to the data
-    * type.
+    * Explore the structure of `DailySchedule` by deciding what composable, orthogonal operations to
+    * add to the data type.
     */
   final case class DailySchedule(set: Set[CalendarAppointment]):
     self =>
@@ -72,8 +74,8 @@ object calendar:
 
   /** EXERCISE 3
     *
-    * Explore the structure of `MonthlySchedule` by deciding what composable, orthogonal operations to add to the data
-    * type.
+    * Explore the structure of `MonthlySchedule` by deciding what composable, orthogonal operations
+    * to add to the data type.
     */
   final case class MonthlySchedule(daysOfMonth: Vector[DailySchedule]):
     self =>
@@ -84,10 +86,11 @@ object calendar:
 
   /** EXERCISE 4
     *
-    * Using the operators you build, express a solution to the following problem: find all the free times that a group
-    * of friends can virtually meet for the specified number of hours.
+    * Using the operators you build, express a solution to the following problem: find all the free
+    * times that a group of friends can virtually meet for the specified number of hours.
     */
-  def findFreeTimes(lengthInHours: Int, friends: Map[Person, MonthlySchedule]): MonthlySchedule = ???
+  def findFreeTimes(lengthInHours: Int, friends: Map[Person, MonthlySchedule]): MonthlySchedule =
+    ???
 end calendar
 
 /** CMS - EXERCISE SET 3
@@ -100,8 +103,13 @@ object cms:
     *
     * Add whatever transformations and combinations have well-defined semantics.
     */
-  sealed trait Html:
-    self =>
+  enum Html:
+    case Zero
+    case One(tagName: String, attributes: Map[String, String], children: Html)
+    case Many(elements: List[Html])
+
+    def self = this
+
     final def isEmpty: Boolean = self match
       case Html.Zero                => true
       case Html.One(_, _, children) => false
@@ -111,10 +119,6 @@ object cms:
       case Html.Zero                => Nil
       case Html.One(_, _, children) => children.childList
       case Html.Many(elements)      => elements.flatMap(_.childList)
-  object Html:
-    case object Zero                                                                       extends Html
-    final case class One(tagName: String, attributes: Map[String, String], children: Html) extends Html
-    final case class Many(elements: List[Html])                                            extends Html
 
   final case class User(email: String)
 
@@ -127,13 +131,17 @@ object cms:
     *
     * Add whatever transformations and combinations have well-defined semantics.
     */
-  sealed trait Component[-Context, -State]:
-    def render(context: Context, state: State): Html
-  object Component:
-    final case class Leaf[Context, State](render0: (Context, State) => Html) extends Component[Context, State]:
-      def render(context: Context, state: State): Html = render0(context, state)
+  enum Component[-Context, -State]:
+    case Leaf(render0: (Context, State) => Html)
 
-    def make[Context, State](render: (Context, State) => Html): Component[Context, State] = Leaf(render)
+    def render(context: Context, state: State): Html =
+      this match
+        case Leaf(render0) => render0(context, state)
+  object Component:
+
+    def make[Context, State](render: (Context, State) => Html): Component[Context, State] = Leaf(
+      render
+    )
 
     /** EXERCISE 3
       *
@@ -144,28 +152,34 @@ end cms
 
 /** JSON VALIDATION - EXERCISE SET 4
   *
-  * Consider a domain where incoming JSON documents are stored into a NoSQL database, but before being stored, they must
-  * be validated by flexible rules. If validation fails, descriptive error messages must be generated that allow clients
-  * of the JSON endpoint to fix the issues with their data.
+  * Consider a domain where incoming JSON documents are stored into a NoSQL database, but before
+  * being stored, they must be validated by flexible rules. If validation fails, descriptive error
+  * messages must be generated that allow clients of the JSON endpoint to fix the issues with their
+  * data.
   */
 object input_validation:
-  sealed trait Json:
+  enum Json:
+    case Null
+    case Bool(value: Boolean)
+    case Number(value: BigDecimal)
+    case Text(value: String)
+    case Sequence(value: List[Json])
+    case Object(value: Map[String, Json])
 
     /** EXERCISE 1
       *
-      * Implement a method to retrieve the JSON value at the specified path, or fail with a descriptive error message.
+      * Implement a method to retrieve the JSON value at the specified path, or fail with a
+      * descriptive error message.
       */
     def get(path: JsonPath): Either[String, Json] = ???
-  object Json:
-    case object Null                                  extends Json
-    final case class Bool(value: Boolean)             extends Json
-    final case class Number(value: BigDecimal)        extends Json
-    final case class Text(value: String)              extends Json
-    final case class Sequence(value: List[Json])      extends Json
-    final case class Object(value: Map[String, Json]) extends Json
 
-  sealed trait JsonPath:
-    self =>
+  enum JsonPath:
+    case Identity
+    case Field(parent: JsonPath, name: String)
+    case Index(parent: JsonPath, index: Int)
+
+    def self = this
+
     def +(that: JsonPath): JsonPath =
       that match
         case JsonPath.Identity             => self
@@ -176,37 +190,49 @@ object input_validation:
 
     def index(index: Int): JsonPath = JsonPath.Index(self, index)
   object JsonPath:
-    case object Identity                                   extends JsonPath
-    final case class Field(parent: JsonPath, name: String) extends JsonPath
-    final case class Index(parent: JsonPath, index: Int)   extends JsonPath
-
     def identity: JsonPath = Identity
 
   /** REQUIREMENTS
     *
-    *   1. Verify that a JSON path is a string, number, null, boolean, object, or array. 2. Verify that numbers are
-    *      integer, non-zero, or within some range. 3. Verify that one part of a JSON value constraints another part. 4.
-    *      Verify that a string can be interpreted as an ISO date time. 5. Verify that an object has a field. 6. Verify
-    *      that an array has a certain minimum length. 7. Verify that a field in an object meets certain requirements.
-    *      8. Verify that an element in an array meets certain requirements. 9. Verify that all elements in an array
-    *      meet certain requirements.
+    *   1. Verify that a JSON path is a string, number, null, boolean, object, or array. 2. Verify
+    *      that numbers are integer, non-zero, or within some range. 3. Verify that one part of a
+    *      JSON value constraints another part. 4. Verify that a string can be interpreted as an ISO
+    *      date time. 5. Verify that an object has a field. 6. Verify that an array has a certain
+    *      minimum length. 7. Verify that a field in an object meets certain requirements. 8. Verify
+    *      that an element in an array meets certain requirements. 9. Verify that all elements in an
+    *      array meet certain requirements.
     */
   type Validation[+A]
   object Validation {}
 
-  /** Implement the `validate` function that can validate some JSON and either return descriptive error messages, or
-    * succeed with a unit value.
+  /** Implement the `validate` function that can validate some JSON and either return descriptive
+    * error messages, or succeed with a unit value.
     */
   def validate[A](json: Json, validation: Validation[A]): Either[List[String], A] = ???
 end input_validation
 
 /** EXERCISE SET 5 - ETL
   *
-  * Consider a domain where data must be loaded from various sources, processed through a flexible graph of components.
+  * Consider a domain where data must be loaded from various sources, processed through a flexible
+  * graph of components.
   */
 object data_processing:
-  sealed trait Schema:
-    self =>
+  enum Schema:
+    case Arbitrary
+    case Null
+    case Bool
+    case Number
+    case Str
+    case Date
+    case DateTime
+    case Described(description: String, schema: Schema)
+    case HasField(name: String, value: () => Schema)
+    case Intersect(left: () => Schema, right: () => Schema)
+    case Union(left: () => Schema, right: () => Schema)
+    case Sequence(elementSchema: () => Schema)
+
+    def self = this
+
     // Arbitrary & schema == schema & Arbitrary == schema
     def &(that: => Schema): Schema = Schema.Intersect(() => self, () => that)
 
@@ -214,20 +240,8 @@ object data_processing:
     def |(that: => Schema): Schema = Schema.Union(() => self, () => that)
 
     def ??(description: String): Schema = Schema.Described(description, self)
+  end Schema
   object Schema:
-    case object Arbitrary                                               extends Schema
-    case object Null                                                    extends Schema
-    case object Bool                                                    extends Schema
-    case object Number                                                  extends Schema
-    case object Str                                                     extends Schema
-    case object Date                                                    extends Schema
-    case object DateTime                                                extends Schema
-    final case class Described(description: String, schema: Schema)     extends Schema
-    final case class HasField(name: String, value: () => Schema)        extends Schema
-    final case class Intersect(left: () => Schema, right: () => Schema) extends Schema
-    final case class Union(left: () => Schema, right: () => Schema)     extends Schema
-    final case class Sequence(elementSchema: () => Schema)              extends Schema
-
     def hasField(name: String, value: => Schema): Schema = HasField(name, () => value)
 
     val number: Schema    = Number
@@ -247,34 +261,42 @@ object data_processing:
         hasField("manager", personSchema | nulls)
   end Schema
 
-  sealed trait Data:
-    def schema: Schema
-  object Data:
-    abstract class AbstractData(val schema: Schema)
+  enum Data:
+    case Null
+    case Bool(value: Boolean)
+    case Number(value: BigDecimal)
+    case Str(value: String)
+    case Date(value: java.time.LocalDate)
+    case DateTime(value: java.time.LocalDateTime)
+    case Record(value: Map[String, Data])
+    case Sequence(value: List[Data])
 
-    case object Null                                          extends AbstractData(Schema.Null)
-    final case class Bool(value: Boolean)                     extends AbstractData(Schema.Bool)
-    final case class Number(value: BigDecimal)                extends AbstractData(Schema.Number)
-    final case class Str(value: String)                       extends AbstractData(Schema.Str)
-    final case class Date(value: java.time.LocalDate)         extends AbstractData(Schema.Date)
-    final case class DateTime(value: java.time.LocalDateTime) extends AbstractData(Schema.DateTime)
-    final case class Record(value: Map[String, Data])         extends Data:
-      def schema =
-        value.map { case (name, data) => Schema.hasField(name, data.schema) }.reduceOption(_ & _) match
-          case Some(value) => value
-          case None        => Schema.arbitrary
-    final case class Sequence(value: List[Data])              extends Data:
-      def schema = value.map(_.schema).toSet.reduceOption(_ | _) match
-        case Some(value) => value
-        case None        => Schema.arbitrary
+    def schema: Schema =
+      this match
+        case Null            => Schema.Null
+        case Bool(value)     => Schema.Bool
+        case Number(value)   => Schema.Number
+        case Str(value)      => Schema.Str
+        case Date(value)     => Schema.Date
+        case DateTime(value) => Schema.DateTime
+        case Record(value)   =>
+          value.map { case (name, data) => Schema.hasField(name, data.schema) }
+            .reduceOption(_ & _) match
+            case Some(value) => value
+            case None        => Schema.arbitrary
+        case Sequence(value) =>
+          value.map(_.schema).toSet.reduceOption(_ | _) match
+            case Some(value) => value
+            case None        => Schema.arbitrary
+  end Data
 
   /** EXERCISE 1
     *
-    * Design a data type that can model schema transformations, as well as value transformations (e.g. replacing nulls
-    * with values, replacing one type of value with another type.
+    * Design a data type that can model schema transformations, as well as value transformations
+    * (e.g. replacing nulls with values, replacing one type of value with another type.
     */
-  sealed trait Transformation {}
-  object Transformation       {}
+  enum Transformation:
+    case Dummy
 end data_processing
 
 /** LOYALTY REWARDS PROGRAM - GRADUATION PROJECT
@@ -284,24 +306,23 @@ end data_processing
 object loyalty_program:
   import java.time.Instant
 
-  sealed trait Supplier
-  object Supplier:
-    case object Amex           extends Supplier
-    case object UnitedAirlines extends Supplier
+  enum Supplier:
+    case Amex
+    case UnitedAirlines
 
-  sealed trait LoyaltyCurrency
-  object LoyaltyCurrency:
-    case object Amex extends LoyaltyCurrency
+  enum LoyaltyCurrency:
+    case Amex
     type Amex = Amex.type
 
-  sealed trait FiscalCurrency
-  object FiscalCurrency:
-    case object USD extends FiscalCurrency
+  enum FiscalCurrency:
+    case USD
 
-  sealed trait Numeric[A]
-  object Numeric:
-    implicit case object IntNumeric    extends Numeric[Int]
-    implicit case object DoubleNumeric extends Numeric[Double]
+  enum Numeric[A]:
+    case IntNumeric    extends Numeric[Int]
+    case DoubleNumeric extends Numeric[Double]
+
+  given Numeric[Int]    = Numeric.IntNumeric
+  given Numeric[Double] = Numeric.DoubleNumeric
 
   final case class Amount[Currency](value: BigDecimal, currency: Currency):
     def +(that: Amount[Currency]): Amount[Currency] =
@@ -314,65 +335,91 @@ object loyalty_program:
 
   final case class Portfolio(holdings: Map[LoyaltyCurrency, LoyaltyAmount]):
     def +(that: (LoyaltyCurrency, LoyaltyAmount)): Portfolio =
-      copy(holdings = holdings.updated(that._1, holdings.get(that._1).map(_ + that._2).getOrElse(that._2)))
+      copy(holdings =
+        holdings.updated(that._1, holdings.get(that._1).map(_ + that._2).getOrElse(that._2))
+      )
 
-  /** Every loyalty program is issued by a supplier, has an associated currency, and has an ordered list of tiers.
+  /** Every loyalty program is issued by a supplier, has an associated currency, and has an ordered
+    * list of tiers.
     */
-  final case class LoyaltyProgram(defaultTier: Tier, tiers: List[Tier], supplier: Supplier, currency: LoyaltyCurrency)
+  final case class LoyaltyProgram(
+    defaultTier: Tier,
+    tiers: List[Tier],
+    supplier: Supplier,
+    currency: LoyaltyCurrency
+  )
 
   /** An account is created when a user enrolls in a loyalty program.
     */
-  final case class Account(user: User, loyaltyProgram: LoyaltyProgram, tier: Tier, history: List[Activity])
+  final case class Account(
+    user: User,
+    loyaltyProgram: LoyaltyProgram,
+    tier: Tier,
+    history: List[Activity]
+  )
 
   final case class User(email: String)
 
   final case class EarnRate(loyaltyCurrency: LoyaltyCurrency, fiscalCurrency: FiscalCurrency)
 
-  /** Tiers contain rule sets that define loyalty point rules for users who are currently in the tier.
+  /** Tiers contain rule sets that define loyalty point rules for users who are currently in the
+    * tier.
     */
-  final case class Tier(benefits: Set[Benefit], name: String, description: String, legalese: String, ruleSet: RuleSet)
+  final case class Tier(
+    benefits: Set[Benefit],
+    name: String,
+    description: String,
+    legalese: String,
+    ruleSet: RuleSet
+  )
 
   final case class Benefit(description: String)
 
-  sealed trait IsLiteral[A]
-  object IsLiteral:
-    implicit case object IntIsLiteral    extends IsLiteral[Int]
-    implicit case object DoubleIsLiteral extends IsLiteral[Double]
+  enum IsLiteral[A]:
+    case IntIsLiteral    extends IsLiteral[Int]
+    case DoubleIsLiteral extends IsLiteral[Double]
+
+  given IsLiteral[Int]    = IsLiteral.IntIsLiteral
+  given IsLiteral[Double] = IsLiteral.DoubleIsLiteral
 
   /*
    * Rule sets represent sets of rules that can perform actions in response
    * to conditions being met. For example, if a user spends so much money,
    * then they may be eligible for an automatic tier promotion.
    */
-  sealed trait RuleSet:
-    self =>
-
+  enum RuleSet:
     /** EXERCISE 1
       *
-      * Augment `RuleSet` with an operator that models combining two rule sets into one.
+      * Augment `RuleSet` with a constructor that models execution of a `SystemAction` whenever a
+      * `RuleCalculation[Boolean]` evaluates to true.
       */
-    def &&(that: RuleSet): RuleSet = ???
+    case When( /* ??? */ )
+
+    def self = this
 
     /** EXERCISE 2
       *
       * Augment `RuleSet` with an operator that models combining two rule sets into one.
       */
-    def ||(that: RuleSet): RuleSet = ???
-  object RuleSet:
+    def &&(that: RuleSet): RuleSet = ???
 
     /** EXERCISE 3
       *
-      * Augment `RuleSet` with a constructor that models execution of a `SystemAction` whenever a
-      * `RuleCalculation[Boolean]` evaluates to true.
+      * Augment `RuleSet` with an operator that models combining two rule sets into one.
       */
-    final case class When( /* ??? */ ) extends RuleSet
-  sealed trait RuleCalculation[+A]:
-    self =>
+    def ||(that: RuleSet): RuleSet = ???
+  end RuleSet
+
+  enum RuleCalculation[+A]:
+    case Widen[A, B](rc: RuleCalculation[A])(using A <:< B) extends RuleCalculation[B]
+
+    def self = this
 
     /** EXERCISE 4
       *
-      * Add an operator `&&` that applies only with this calculation and the other calculation produce booleans, and
-      * which models the boolean conjunction ("and") of the two boolean values.
+      * Add an operator `&&` that applies only with this calculation and the other calculation
+      * produce booleans, and which models the boolean conjunction ("and") of the two boolean
+      * values.
       */
     def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
@@ -383,8 +430,8 @@ object loyalty_program:
 
     /** EXERCISE 5
       *
-      * Add an operator `||` that applies only with this calculation and the other calculation produce booleans, and
-      * which models the boolean disjunction ("or") of the two boolean values.
+      * Add an operator `||` that applies only with this calculation and the other calculation
+      * produce booleans, and which models the boolean disjunction ("or") of the two boolean values.
       */
     def ||(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
@@ -396,8 +443,8 @@ object loyalty_program:
 
     /** EXERCISE 6
       *
-      * Add an operator `negate` that applies only with this calculation produces a boolean, and which models the
-      * boolean negation of this value.
+      * Add an operator `negate` that applies only with this calculation produces a boolean, and
+      * which models the boolean negation of this value.
       */
     def unary_!(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
@@ -409,10 +456,13 @@ object loyalty_program:
 
     /** EXERCISE 7
       *
-      * Add an operator `>` that applies only when this calculation and the other calculation produce amounts, and which
-      * models the `>` comparison between the two amounts, which yields a boolean indicating if the relation holds.
+      * Add an operator `>` that applies only when this calculation and the other calculation
+      * produce amounts, and which models the `>` comparison between the two amounts, which yields a
+      * boolean indicating if the relation holds.
       */
-    def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit
+      ev: A <:< Currency
+    ): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
 
@@ -422,9 +472,9 @@ object loyalty_program:
 
     /** EXERCISE 8
       *
-      * Add an operator `>=` that applies only when this calculation and the other calculation produce amounts, and
-      * which models the `>=` comparison between the two amounts, which yields a boolean indicating if the relation
-      * holds.
+      * Add an operator `>=` that applies only when this calculation and the other calculation
+      * produce amounts, and which models the `>=` comparison between the two amounts, which yields
+      * a boolean indicating if the relation holds.
       */
     def >=[Currency: Numeric](
       that: RuleCalculation[Currency]
@@ -438,10 +488,13 @@ object loyalty_program:
 
     /** EXERCISE 9
       *
-      * Add an operator `<` that applies only when this calculation and the other calculation produce amounts, and which
-      * models the `<` comparison between the two amounts, which yields a boolean indicating if the relation holds.
+      * Add an operator `<` that applies only when this calculation and the other calculation
+      * produce amounts, and which models the `<` comparison between the two amounts, which yields a
+      * boolean indicating if the relation holds.
       */
-    def <[Currency: Numeric](that: RuleCalculation[Currency])(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    def <[Currency: Numeric](that: RuleCalculation[Currency])(implicit
+      ev: A <:< Currency
+    ): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
 
@@ -451,9 +504,9 @@ object loyalty_program:
 
     /** EXERCISE 10
       *
-      * Add an operator `<=` that applies only when this calculation and the other calculation produce amounts, and
-      * which models the `<=` comparison between the two amounts, which yields a boolean indicating if the relation
-      * holds.
+      * Add an operator `<=` that applies only when this calculation and the other calculation
+      * produce amounts, and which models the `<=` comparison between the two amounts, which yields
+      * a boolean indicating if the relation holds.
       */
     def <=[Currency: Numeric](
       that: RuleCalculation[Currency]
@@ -467,8 +520,8 @@ object loyalty_program:
 
     /** EXERCISE 11
       *
-      * Add an operator `===` that applies only when this calculation and the other calculation produce amounts, and
-      * which models equality.
+      * Add an operator `===` that applies only when this calculation and the other calculation
+      * produce amounts, and which models equality.
       */
     def ===[Currency: Numeric](
       that: RuleCalculation[Currency]
@@ -480,61 +533,60 @@ object loyalty_program:
 
       ???
 
-    def widen[B](implicit ev: A <:< B): RuleCalculation[B] = RuleCalculation.Widen(self)(ev)
+    def widen[B](using A <:< B): RuleCalculation[B] = RuleCalculation.Widen(self)
   end RuleCalculation
   object RuleCalculation:
-    final case class Widen[A, B](rc: RuleCalculation[A])(implicit val ev: A <:< B) extends RuleCalculation[B]
 
     /** EXERCISE 12
       *
       * Add a constructor that models calculation of a constant value of the specified type.
       */
-    final case class Constant[A]( /* ??? */ )
+    def constant[A](value: A): RuleCalculation[A] = ???
 
     /** EXERCISE 13
       *
-      * Add a constructor that models calculation of the price of an item that the user buys, in a fiscal currency.
+      * Add a constructor that models calculation of the price of an item that the user buys, in a
+      * fiscal currency.
       */
-    case object PurchasePrice
+    def purchasePrice: RuleCalculation[FiscalCurrency] = ???
 
     /** EXERCISE 14
       *
-      * Add a constructor that models calculation of the price of an item that the user buys, in a fiscal currency.
+      * Add a constructor that models calculation of the price of an item that the user buys, in a
+      * fiscal currency.
       */
-    case object ItemPrice
+    def itemPrice: RuleCalculation[FiscalCurrency] = ???
 
     /** EXERCISE 15
       *
-      * Add a constructor that models the number of days since the last purchase of the user, as an integer.
+      * Add a constructor that models the number of days since the last purchase of the user, as an
+      * integer.
       */
-    case object DaysSinceLastPurchase
+    def daysSinceLastPurchase: RuleCalculation[Int] = ???
   end RuleCalculation
 
-  sealed trait UserAction
-  object UserAction:
-    final case class Spend(amount: FiscalCurrency)  extends UserAction
-    final case class Return(amount: FiscalCurrency) extends UserAction
+  enum UserAction:
+    case Spend(amount: FiscalCurrency)
+    case Return(amount: FiscalCurrency)
 
-  sealed trait SystemAction
-  object SystemAction:
-    final case class Credit(amount: LoyaltyCurrency)         extends SystemAction
-    final case class Debit(amount: LoyaltyCurrency)          extends SystemAction
-    case object TierPromotion                                extends SystemAction
-    case object TierDemotion                                 extends SystemAction
-    final case class ChangeStatus(status: UserProgramStatus) extends SystemAction
+  enum SystemAction:
+    case Credit(amount: LoyaltyCurrency)
+    case Debit(amount: LoyaltyCurrency)
+    case TierPromotion
+    case TierDemotion
+    case ChangeStatus(status: UserProgramStatus)
 
   final case class Activity(action: Either[UserAction, SystemAction], instant: Instant)
 
-  sealed trait UserProgramStatus
-  object UserProgramStatus:
-    case object Active                                 extends UserProgramStatus
-    case object Inactive                               extends UserProgramStatus
-    final case class Suspended(who: User, why: String) extends UserProgramStatus
+  enum UserProgramStatus:
+    case Active
+    case Inactive
+    case Suspended(who: User, why: String)
 
   /** EXERCISE 14
     *
-    * Construct a rule set that describes promotion to the next tier, as well as demotion, and changing the status of
-    * the user to inactive.
+    * Construct a rule set that describes promotion to the next tier, as well as demotion, and
+    * changing the status of the user to inactive.
     */
   def ruleSet: RuleSet = ???
 

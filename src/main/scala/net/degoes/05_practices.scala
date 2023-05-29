@@ -40,36 +40,40 @@ object email_filter3:
 
   /** EXERCISE 1
     *
-    * In the following model, which describes an email filter, there are many primitives with overlapping
-    * responsibilities. Find the smallest possible set of primitive operators and constructors, without deleting any
-    * constructors or operators (you may implement them in terms of primitives).
+    * In the following model, which describes an email filter, there are many primitives with
+    * overlapping responsibilities. Find the smallest possible set of primitive operators and
+    * constructors, without deleting any constructors or operators (you may implement them in terms
+    * of primitives).
     *
-    * NOTE: You may *not* use a final encoding, which would allow you to collapse everything down to one primitive.
+    * NOTE: You may *not* use a final encoding, which would allow you to collapse everything down to
+    * one primitive.
     */
-  sealed trait EmailFilter:
-    self =>
+  enum EmailFilter:
+    case Always
+    case Never
+    case And(left: EmailFilter, right: EmailFilter)
+    case InclusiveOr(left: EmailFilter, right: EmailFilter)
+    case ExclusiveOr(left: EmailFilter, right: EmailFilter)
+    case SenderEquals(target: Address)
+    case SenderNotEquals(target: Address)
+    case RecipientEquals(target: Address)
+    case RecipientNotEquals(target: Address)
+    case SenderIn(targets: Set[Address])
+    case RecipientIn(targets: Set[Address])
+    case BodyContains(phrase: String)
+    case BodyNotContains(phrase: String)
+    case SubjectContains(phrase: String)
+    case SubjectNotContains(phrase: String)
+
+    def self = this
+
     def &&(that: EmailFilter): EmailFilter = EmailFilter.And(self, that)
 
     def ||(that: EmailFilter): EmailFilter = EmailFilter.InclusiveOr(self, that)
 
     def ^^(that: EmailFilter): EmailFilter = EmailFilter.ExclusiveOr(self, that)
+  end EmailFilter
   object EmailFilter:
-    case object Always                                                  extends EmailFilter
-    case object Never                                                   extends EmailFilter
-    final case class And(left: EmailFilter, right: EmailFilter)         extends EmailFilter
-    final case class InclusiveOr(left: EmailFilter, right: EmailFilter) extends EmailFilter
-    final case class ExclusiveOr(left: EmailFilter, right: EmailFilter) extends EmailFilter
-    final case class SenderEquals(target: Address)                      extends EmailFilter
-    final case class SenderNotEquals(target: Address)                   extends EmailFilter
-    final case class RecipientEquals(target: Address)                   extends EmailFilter
-    final case class RecipientNotEquals(target: Address)                extends EmailFilter
-    final case class SenderIn(targets: Set[Address])                    extends EmailFilter
-    final case class RecipientIn(targets: Set[Address])                 extends EmailFilter
-    final case class BodyContains(phrase: String)                       extends EmailFilter
-    final case class BodyNotContains(phrase: String)                    extends EmailFilter
-    final case class SubjectContains(phrase: String)                    extends EmailFilter
-    final case class SubjectNotContains(phrase: String)                 extends EmailFilter
-
     val always: EmailFilter = Always
 
     val never: EmailFilter = Always
@@ -100,19 +104,39 @@ end email_filter3
   */
 object ui_components:
 
-  /** EXERCISE 1
-    *
-    * The following API is not composable—there is no domain. Introduce a domain with elements, constructors, and
-    * composable operators.
-    */
-  trait Turtle:
-    self =>
-    def turnLeft(degrees: Int): Unit
+  object executable:
+    /** EXERCISE 1
+      *
+      * The following API is not composable—there is no domain. Introduce a domain with elements,
+      * constructors, and composable operators. Use an executable model.
+      */
+    trait Turtle:
+      self =>
+      def turnLeft(degrees: Int): Unit
 
-    def turnRight(degrees: Int): Unit
+      def turnRight(degrees: Int): Unit
 
-    def goForward(): Unit
+      def goForward(): Unit
 
-    def goBackward(): Unit
+      def goBackward(): Unit
 
-    def draw(): Unit
+      def draw(): Unit
+
+  object declarative:
+    /** EXERCISE 2
+      *
+      * The following API is not composable—there is no domain. Introduce a domain with elements,
+      * constructors, and composable operators. Use a declarative model.
+      */
+    trait Turtle:
+      self =>
+      def turnLeft(degrees: Int): Unit
+
+      def turnRight(degrees: Int): Unit
+
+      def goForward(): Unit
+
+      def goBackward(): Unit
+
+      def draw(): Unit
+end ui_components

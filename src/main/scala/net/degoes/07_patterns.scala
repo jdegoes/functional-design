@@ -19,8 +19,20 @@ object untyped:
   lazy val nameValidation =
     JsonValidation.start.field("name").string("""\w+(\s+(\w|\s)+)+""".r)
 
-  sealed trait JsonValidation:
-    self =>
+  enum JsonValidation:
+    case Start
+    case DescendField(parent: JsonValidation, name: String)
+    case DescendElement(parent: JsonValidation, index: Int)
+    case DescendElements(parent: JsonValidation)
+    case ValidateNumber(
+      parent: JsonValidation,
+      min: Option[BigDecimal],
+      max: Option[BigDecimal]
+    ) extends JsonValidation
+    case ValidateString(parent: JsonValidation, pattern: Regex)
+
+    def self = this
+
     def element(index: Int): JsonValidation = JsonValidation.DescendElement(self, index)
 
     def elements: JsonValidation = JsonValidation.DescendElements(self)
@@ -37,45 +49,38 @@ object untyped:
     /** EXERCISE
       *
       * Design a binary operator with the meaning of sequential composition. For example,
-      * `JsonValidation.start.field("address") ++ JsonValidation.start.field("street")` would first validate that a
-      * field called `address` exists, and then would descend into that field value to validate that a field called
-      * `street` exists within it.
+      * `JsonValidation.start.field("address") ++ JsonValidation.start.field("street")` would first
+      * validate that a field called `address` exists, and then would descend into that field value
+      * to validate that a field called `street` exists within it.
       */
     def ++(that: JsonValidation): JsonValidation = ???
 
     /** EXERCISE
       *
-      * Design a binary operator with the meaning of parallel composition. The meaning of `a && b` should be that `a` is
-      * validated, and also `b` is validated (starting from the root of the JSON object).
+      * Design a binary operator with the meaning of parallel composition. The meaning of `a && b`
+      * should be that `a` is validated, and also `b` is validated (starting from the root of the
+      * JSON object).
       */
     def &&(that: JsonValidation): JsonValidation = ???
 
     /** EXERCISE
       *
-      * Design a binary operator with the meaning of fallback. The meaning of `a || b` should be that `a` is validated,
-      * but if the validation fails, then `b` is validated (starting from the root of the JSON object).
+      * Design a binary operator with the meaning of fallback. The meaning of `a || b` should be
+      * that `a` is validated, but if the validation fails, then `b` is validated (starting from the
+      * root of the JSON object).
       */
     def ||(that: JsonValidation): JsonValidation = ???
   end JsonValidation
   object JsonValidation:
-    case object Start                                                       extends JsonValidation
-    final case class DescendField(parent: JsonValidation, name: String)     extends JsonValidation
-    final case class DescendElement(parent: JsonValidation, index: Int)     extends JsonValidation
-    final case class DescendElements(parent: JsonValidation)                extends JsonValidation
-    final case class ValidateNumber(parent: JsonValidation, min: Option[BigDecimal], max: Option[BigDecimal])
-        extends JsonValidation
-    final case class ValidateString(parent: JsonValidation, pattern: Regex) extends JsonValidation
-
     def start: JsonValidation = Start
 
-  sealed trait Json
-  object Json:
-    final case class Object(fields: Map[String, Json]) extends Json
-    final case class Array(elements: List[Json])       extends Json
-    final case class String(value: String)             extends Json
-    final case class Number(value: BigDecimal)         extends Json
-    final case class Boolean(value: Boolean)           extends Json
-    case object Null                                   extends Json
+  enum Json:
+    case Object(fields: Map[String, Json])
+    case Array(elements: List[Json])
+    case String(value: String)
+    case Number(value: BigDecimal)
+    case Boolean(value: Boolean)
+    case Null
 
   final case class JsonValidator(validation: JsonValidation):
 
@@ -89,21 +94,23 @@ end untyped
 /** TYPED FUNCTIONAL DOMAINS - EXERCISE SET 2
   */
 object typed:
-  sealed trait Baked[+A]
-  object Baked:
-    final case class Burnt[A](value: A)         extends Baked[A]
-    final case class CookedPerfect[A](value: A) extends Baked[A]
-    final case class Undercooked[A](value: A)   extends Baked[A]
+  enum Baked[+A]:
+    case Burnt(value: A)
+    case CookedPerfect(value: A)
+    case Undercooked(value: A)
 
-  sealed trait Ingredient
-  object Ingredient:
-    final case class Eggs(number: Int)        extends Ingredient
-    final case class Sugar(amount: Double)    extends Ingredient
-    final case class Flour(amount: Double)    extends Ingredient
-    final case class Cinnamon(amount: Double) extends Ingredient
+  enum Ingredient:
+    case Eggs(number: Int)
+    case Sugar(amount: Double)
+    case Flour(amount: Double)
+    case Cinnamon(amount: Double)
 
-  sealed trait Recipe[+A]:
-    self =>
+  enum Recipe[+A]:
+    case Disaster                                      extends Recipe[Nothing]
+    case AddIngredient(ingredient: Ingredient)         extends Recipe[Unit]
+    case Bake(recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]]
+
+    def self = this
 
     /** Uses all the ingredients in a recipe by baking them to produce a baked result.
       */
@@ -111,17 +118,21 @@ object typed:
 
     /** EXERCISE 1
       *
-      * Implement a `both` operation that allows combining two recipes into one, producing both items in a tuple.
+      * Implement a `both` operation that allows combining two recipes into one, producing both
+      * items in a tuple.
       *
-      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your new operation.
+      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your
+      * new operation.
       */
     def both[B](that: Recipe[B]): Recipe[(A, B)] = ???
 
     /** EXERCISE 2
       *
-      * Implement a `either` operation that allows trying a backup recipe, in case this recipe ends in disaster.
+      * Implement a `either` operation that allows trying a backup recipe, in case this recipe ends
+      * in disaster.
       *
-      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your new operation.
+      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your
+      * new operation.
       */
     def either[B](that: Recipe[B]): Recipe[Either[A, B]] = ???
 
@@ -129,25 +140,22 @@ object typed:
       *
       * Implement a `map` operation that allows changing what a recipe produces.
       *
-      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your new operation.
+      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your
+      * new operation.
       */
     def map[B](f: A => B): Recipe[B] = ???
 
     /** EXERCISE 4
       *
-      * Implement a `flatMap` operation that allows deciding which recipe to make after this recipe has produced its
-      * item.
+      * Implement a `flatMap` operation that allows deciding which recipe to make after this recipe
+      * has produced its item.
       *
-      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your new operation.
+      * NOTE: Be sure to update the `bake` method below so that you can make recipes that use your
+      * new operation.
       */
     def flatMap[B](f: A => Recipe[B]): Recipe[B] = ???
   end Recipe
   object Recipe:
-    case object Disaster                                              extends Recipe[Nothing]
-    final case class AddIngredient(ingredient: Ingredient)            extends Recipe[Unit]
-    final case class Bake[A](recipe: Recipe[A], temp: Int, time: Int) extends Recipe[Baked[A]]:
-      type Type = A
-
     def addIngredient(ingredient: Ingredient): Recipe[Unit] = AddIngredient(ingredient)
 
     def disaster: Recipe[Nothing] = Disaster
@@ -159,7 +167,7 @@ object typed:
         case Disaster                        => throw new Exception("Uh no, utter disaster!")
         case AddIngredient(ingredient)       => (ingredients :+ ingredient, ())
         case bake @ Bake(recipe, temp, time) =>
-          val (leftover, a) = loop[bake.Type](ingredients, recipe)
+          val (leftover, a) = loop(ingredients, recipe)
 
           println(s"Baking ${a} for ${time} minutes at ${temp} temperature")
           println("Ingredients: ")
@@ -183,3 +191,7 @@ object typed:
     */
   lazy val recipe: Recipe[Baked[Cake]] = ???
 end typed
+
+object stack:
+
+end stack

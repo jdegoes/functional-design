@@ -9,7 +9,8 @@ package net.degoes
 
 /** EXECUTABLE - EXERCISE SET 1
   *
-  * Consider an application (such as the spreadsheet example) that needs to calculate values in a user-defined way.
+  * Consider an application (such as the spreadsheet example) that needs to calculate values in a
+  * user-defined way.
   */
 object executable_typed:
   trait Spreadsheet:
@@ -30,7 +31,12 @@ object executable_typed:
         row <- (minRow to maxRow).to(LazyList)
       yield Cell(col, row, valueAt(col, row)))
 
-  final case class Range(minRow: Option[Int], maxRow: Option[Int], minCol: Option[Int], maxCol: Option[Int])
+  final case class Range(
+    minRow: Option[Int],
+    maxRow: Option[Int],
+    minCol: Option[Int],
+    maxCol: Option[Int]
+  )
   object Range:
     def column(i: Int): Range = Range(None, None, Some(i), Some(i))
 
@@ -40,30 +46,34 @@ object executable_typed:
 
   /** EXERCISE 1
     *
-    * Design a data type called `CalculatedValue[A]`, whose type parameter `A` represents the type of value dynamically
-    * computed from the spreadsheet.
+    * Design a data type called `CalculatedValue[A]`, whose type parameter `A` represents the type
+    * of value dynamically computed from the spreadsheet.
     */
   final case class CalculatedValue[+A]( /* ??? */ ):
     self =>
 
     /** EXERCISE 2
       *
-      * Add an operator that returns a new `CalculatedValue` that is the negated version of this one.
+      * Add an operator that returns a new `CalculatedValue` that is the negated version of this
+      * one.
       */
     def unary_-[A1 >: A](implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
 
     /** EXERCISE 3
       *
-      * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two calculated values.
+      * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
+      * calculated values.
       */
-    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+      ???
 
     /** EXERCISE 4
       *
-      * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the two calculated
-      * values.
+      * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
+      * two calculated values.
       */
-    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+      ???
 
     protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(
       f: PartialFunction[(A1, A1), A1]
@@ -79,14 +89,16 @@ object executable_typed:
 
     /** EXERCISE 6
       *
-      * Add a constructor that provides access to the value of the specified cell, identified by col/row.
+      * Add a constructor that provides access to the value of the specified cell, identified by
+      * col/row.
       */
     def at(col: Int, row: Int): CalculatedValue[Any] = ???
 end executable_typed
 
 /** EXECUTABLE - EXERCISE SET 2
   *
-  * Consider an application (such as the spreadsheet example) that needs to calculate values in a user-defined way.
+  * Consider an application (such as the spreadsheet example) that needs to calculate values in a
+  * user-defined way.
   */
 object declarative_typed:
   trait Spreadsheet:
@@ -107,7 +119,12 @@ object declarative_typed:
         row <- (minRow to maxRow).to(LazyList)
       yield Cell(col, row, valueAt(col, row)))
 
-  final case class Range(minRow: Option[Int], maxRow: Option[Int], minCol: Option[Int], maxCol: Option[Int])
+  final case class Range(
+    minRow: Option[Int],
+    maxRow: Option[Int],
+    minCol: Option[Int],
+    maxCol: Option[Int]
+  )
   object Range:
     def column(i: Int): Range = Range(None, None, Some(i), Some(i))
 
@@ -117,38 +134,43 @@ object declarative_typed:
 
   /** EXERCISE 1
     *
-    * Design a data type called `CalculatedValue[A]`, whose type parameter `A` represents the type of value dynamically
-    * computed from the spreadsheet.
+    * Design a data type called `CalculatedValue[A]`, whose type parameter `A` represents the type
+    * of value dynamically computed from the spreadsheet.
     */
-  sealed trait CalculatedValue[+A]:
-    self =>
+  enum CalculatedValue[+A]:
+    case Integer(value: Int) extends CalculatedValue[Int]
+    case Str(value: String)  extends CalculatedValue[String]
+
+    def self = this
 
     /** EXERCISE 2
       *
-      * Add an operator that returns a new `CalculatedValue` that is the negated version of this one.
+      * Add an operator that returns a new `CalculatedValue` that is the negated version of this
+      * one.
       */
     def unary_-[A1 >: A](implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
 
     /** EXERCISE 3
       *
-      * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two calculated values.
+      * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
+      * calculated values.
       */
-    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+      ???
 
     /** EXERCISE 4
       *
-      * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the two calculated
-      * values.
+      * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
+      * two calculated values.
       */
-    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+      ???
 
     protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(
       f: PartialFunction[(A1, A1), A1]
     ): CalculatedValue[A1] = ???
   end CalculatedValue
   object CalculatedValue:
-    final case class Integer(value: Int) extends CalculatedValue[Int]
-    final case class Str(value: String)  extends CalculatedValue[String]
 
     /** EXERCISE 5
       *
@@ -158,7 +180,8 @@ object declarative_typed:
 
     /** EXERCISE 6
       *
-      * Add a constructor that provides access to the value of the specified cell, identified by col/row.
+      * Add a constructor that provides access to the value of the specified cell, identified by
+      * col/row.
       */
     def at(col: Int, row: Int): CalculatedValue[Any] = ???
 
@@ -179,8 +202,13 @@ object parser:
   // `Parser[A]` is a model of a series of parse operations that consume
   // characters and ultimately use the consumed input construct a value of
   // type `A`.
-  sealed trait Parser[+A]:
-    self =>
+  enum Parser[+A]:
+    case OneChar                                                         extends Parser[Char]
+    case Map[A, B](parser: Parser[A], f: A => B)                         extends Parser[B]
+    case Repeat[A](value: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[List[A]]
+
+    def self = this
+
     def atLeast(n: Int): Parser[List[A]] = Parser.Repeat(self, Some(n), None)
 
     def atMost(n: Int): Parser[List[A]] = Parser.Repeat(self, None, Some(n))
@@ -202,14 +230,11 @@ object parser:
     def + : Parser[List[A]] = atLeast(1)
   end Parser
   object Parser:
-    case object OneChar                                                              extends Parser[Char]
-    final case class Map[A, B](self: Parser[A], f: A => B)                           extends Parser[B]
-    final case class Repeat[A](value: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[List[A]]
 
     /** EXERCISE 1
       *
-      * Add a constructor that models the production of the specified value (of any type at all), without consuming any
-      * input.
+      * Add a constructor that models the production of the specified value (of any type at all),
+      * without consuming any input.
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */
@@ -233,8 +258,8 @@ object parser:
 
     /** EXERCISE 4
       *
-      * Add an operator that parses one thing, and then parses another one, in sequence, producing a tuple of their
-      * results.
+      * Add an operator that parses one thing, and then parses another one, in sequence, producing a
+      * tuple of their results.
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */

@@ -30,8 +30,8 @@ import zio.*
 object tour:
   object effect:
 
-    /** The shard function creates N workers reading from a Queue, if one of them fails, then wait for the other ones to
-      * process their current item, but terminate all the workers.
+    /** The shard function creates N workers reading from a Queue, if one of them fails, then wait
+      * for the other ones to process their current item, but terminate all the workers.
       *
       * Returns the first error, or never return, if there is no error.
       */
@@ -60,9 +60,10 @@ object tour:
   object schedule:
     type Response
 
-    /** Constructs a schedule that will use exponential falloff, starting from 10 milliseconds, until the delay becomes
-      * 60 seconds, when it will switch to using a fixed spacing of 60 seconds between recurrences, until it reaches 100
-      * recurrences at that spacing, at which point the schedule will no longer recur.
+    /** Constructs a schedule that will use exponential falloff, starting from 10 milliseconds,
+      * until the delay becomes 60 seconds, when it will switch to using a fixed spacing of 60
+      * seconds between recurrences, until it reaches 100 recurrences at that spacing, at which
+      * point the schedule will no longer recur.
       */
     val schedule =
       (Schedule.exponential(10.millis).whileOutput(_ < 60.seconds) andThen
@@ -83,9 +84,9 @@ object tour:
 
     val sherlock = User("Sherlock Holmes", Address("Baker Street"))
 
-    /** Composes a lens for 'address' in 'User' together with a lens for 'street' in 'Address', generating a lens that
-      * accesses '.address.street' inside a `User` object. Then uses the lens to make the street name lower case inside
-      * the `sherlock` user.
+    /** Composes a lens for 'address' in 'User' together with a lens for 'street' in 'Address',
+      * generating a lens that accesses '.address.street' inside a `User` object. Then uses the lens
+      * to make the street name lower case inside the `sherlock` user.
       */
     (User.address >>> Address.street).update(_.toLowerCase)(sherlock)
 
@@ -123,7 +124,9 @@ object tour:
 
       def map[B](f: A => B): Parser[E, B] = self.flatMap(a => Parser.succeed(f(a)))
 
-      def +[E1 >: E, B](that: => Parser[E1, B])(implicit ev1: StringLike[A], ev2: StringLike[B]): Parser[E1, String] =
+      def +[E1 >: E, B](
+        that: => Parser[E1, B]
+      )(implicit ev1: StringLike[A], ev2: StringLike[B]): Parser[E1, String] =
         self.string.zipWith(that.string)(_ + _)
 
       def ~[E1 >: E, B](that: => Parser[E1, B]): Parser[E1, (A, B)] = self.zip(that)

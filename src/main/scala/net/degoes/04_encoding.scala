@@ -3,8 +3,7 @@ package net.degoes
 /*
  * INTRODUCTION
  *
- * In Functional Design, there are two ways to encode functional domain
- * constructors and operators:
+ * In Functional Design, there are two ways to represent models:
  *
  * 1. Using a function or interface, whose methods execute the solution. This is
  *    called the "executable" encoding in this course. It's a direct, executable
@@ -15,8 +14,8 @@ package net.degoes
  * 2. Using a pure data structure, which declaratively describes the solution, but
  *    which does not perform the solution. It's an abstract, "declarative"
  *    encoding of a domain. If some functional domain type is modeled with a
- *    sealed trait, then it's probably an abstract encoding, where the subtypes
- *    of the sealed trait model individual operations and constructors in the
+ *    enum, then it's probably a declarative encoding, where the subtypes
+ *    of the enum model individual operations and constructors in the
  *    domain.
  *
  * In the second encoding, a so-called "executor" or "interpreter" or "compiler"
@@ -39,7 +38,7 @@ package net.degoes
  * declarative encodings do; if you embed a function inside a declarative
  * encoding, it becomes opaque).
  *
- * Summarizing the difference between executable and abstract encodings:
+ * Summarizing the difference between executable and declarative encodings:
  *
  *  - Executable encodings have unbounded constructors/operators, but a fixed
  *    number of ways to execute them.
@@ -56,25 +55,28 @@ package net.degoes
 
 /** EDUCATION - EXERCISE SET 1
   *
-  * Consider a console-based educational application that tests the user's knowledge of key concepts.
+  * Consider a console-based educational application that tests the user's knowledge of key
+  * concepts.
   */
 object education_executable:
   import education.*
 
-  sealed trait Quiz2:
-    self =>
+  enum Quiz2:
+    case Dummy
+
+    def self = this
 
     /** EXERCISE 1
       *
-      * Add an operator `+` that appends this quiz to the specified quiz. Model this as pure data using a constructor
-      * for Quiz in the companion object.
+      * Add an operator `+` that appends this quiz to the specified quiz. Model this as pure data
+      * using a constructor for Quiz in the companion object.
       */
     def +(that: Quiz2): Quiz2 = ???
 
     /** EXERCISE 2
       *
-      * Add a unary operator `bonus` that marks this quiz as a bonus quiz. Model this as pure data using a constructor
-      * for Quiz in the companion object.
+      * Add a unary operator `bonus` that marks this quiz as a bonus quiz. Model this as pure data
+      * using a constructor for Quiz in the companion object.
       */
     def bonus: Quiz2 = ???
   object Quiz2:
@@ -82,8 +84,8 @@ object education_executable:
 
   /** EXERCISE 3
     *
-    * Implement an interpreter for the `Quiz` model that translates it into the interactive console operations that it
-    * describes, returning a QuizResult value.
+    * Implement an interpreter for the `Quiz` model that translates it into the interactive console
+    * operations that it describes, returning a QuizResult value.
     */
   def run(quiz: Quiz2): QuizResult = ???
 end education_executable
@@ -95,19 +97,21 @@ end education_executable
 object contact_processing2:
   import contact_processing.*
 
-  sealed trait SchemaMapping2:
+  enum SchemaMapping2:
+    case Dummy
 
     /** EXERCISE 1
       *
-      * Add a `+` operator that models combining two schema mappings into one, applying the effects of both in
-      * sequential order.
+      * Add a `+` operator that models combining two schema mappings into one, applying the effects
+      * of both in sequential order.
       */
     def +(that: SchemaMapping2): SchemaMapping2 = ???
 
     /** EXERCISE 2
       *
-      * Add an `orElse` operator that models combining two schema mappings into one, applying the effects of the first
-      * one, unless it fails, and in that case, applying the effects of the second one.
+      * Add an `orElse` operator that models combining two schema mappings into one, applying the
+      * effects of the first one, unless it fails, and in that case, applying the effects of the
+      * second one.
       */
     def orElse(that: SchemaMapping2): SchemaMapping2 = ???
   object SchemaMapping2:
@@ -126,14 +130,15 @@ object contact_processing2:
 
   /** EXERCISE 5
     *
-    * Implement an interpreter for the `SchemaMapping` model that translates it into into changes on the contact list.
+    * Implement an interpreter for the `SchemaMapping` model that translates it into into changes on
+    * the contact list.
     */
   def run(mapping: SchemaMapping2, contacts: ContactsCSV): MappingResult[ContactsCSV] = ???
 
   /** BONUS EXERCISE
     *
-    * Implement an optimizer for the `SchemaMapping` model that pushes deletes to the front of the schema mapping in
-    * cases where doing so wouldn't later the result.
+    * Implement an optimizer for the `SchemaMapping` model that pushes deletes to the front of the
+    * schema mapping in cases where doing so wouldn't later the result.
     */
   def optimize(schemaMapping: SchemaMapping2): SchemaMapping2 =
     ???
@@ -141,33 +146,36 @@ end contact_processing2
 
 /** EMAIL CLIENT - EXERCISE SET 3
   *
-  * Consider a web email interface, which allows users to filter emails and direct them to specific folders based on
-  * custom criteria.
+  * Consider a web email interface, which allows users to filter emails and direct them to specific
+  * folders based on custom criteria.
   */
 object email_filter2:
   final case class Address(emailAddress: String)
   final case class Email(sender: Address, to: List[Address], subject: String, body: String)
 
-  sealed trait EmailFilter:
-    self =>
+  enum EmailFilter:
+    case Dummy
+
+    def self = this
 
     /** EXERCISE 1
       *
-      * Add an "and" operator that models matching an email if both the first and the second email filter match the
-      * email.
+      * Add an "and" operator that models matching an email if both the first and the second email
+      * filter match the email.
       */
     def &&(that: EmailFilter): EmailFilter = ???
 
     /** EXERCISE 2
       *
-      * Add an "or" operator that models matching an email if either the first or the second email filter match the
-      * email.
+      * Add an "or" operator that models matching an email if either the first or the second email
+      * filter match the email.
       */
     def ||(that: EmailFilter): EmailFilter = ???
 
     /** EXERCISE 3
       *
-      * Add a "negate" operator that models matching an email if this email filter does NOT match an email.
+      * Add a "negate" operator that models matching an email if this email filter does NOT match an
+      * email.
       */
     def negate: EmailFilter = ???
   end EmailFilter
@@ -175,36 +183,37 @@ object email_filter2:
 
     /** EXERCISE 4
       *
-      * Add a constructor for `EmailFilter` that models looking to see if the subject of an email contains the specified
-      * word.
+      * Add a constructor for `EmailFilter` that models looking to see if the subject of an email
+      * contains the specified word.
       */
     def subjectContains(string: String): EmailFilter = ???
 
     /** EXERCISE 5
       *
-      * Add a constructor for `EmailFilter` that models looking to see if the body of an email contains the specified
-      * word.
+      * Add a constructor for `EmailFilter` that models looking to see if the body of an email
+      * contains the specified word.
       */
     def bodyContains(string: String): EmailFilter = ???
 
     /** EXERCISE 6
       *
-      * Add a constructor for `EmailFilter` that models looking to see if the sender of an email is in the specified set
-      * of senders.
+      * Add a constructor for `EmailFilter` that models looking to see if the sender of an email is
+      * in the specified set of senders.
       */
     def senderIn(senders: Set[Address]): EmailFilter = ???
 
     /** EXERCISE 7
       *
-      * Add a constructor for `EmailFilter` that models looking to see if the recipient of an email is in the specified
-      * set of recipients.
+      * Add a constructor for `EmailFilter` that models looking to see if the recipient of an email
+      * is in the specified set of recipients.
       */
     def recipientIn(recipients: Set[Address]): EmailFilter = ???
   end EmailFilter
 
   /** EXERCISE 8
     *
-    * Implement an interpreter for the `EmailFilter` model that translates it into into tests on the specified email.
+    * Implement an interpreter for the `EmailFilter` model that translates it into into tests on the
+    * specified email.
     */
   def matches(filter: EmailFilter, email: Email): Boolean =
     ???
@@ -218,8 +227,8 @@ end email_filter2
 
 /** SPREADSHEET - EXERCISE SET 4
   *
-  * Consider a spreadsheet application with a bunch of cells, containing either static data or formula computed from
-  * other cells.
+  * Consider a spreadsheet application with a bunch of cells, containing either static data or
+  * formula computed from other cells.
   */
 object spreadsheet2:
   trait Spreadsheet:
@@ -240,7 +249,12 @@ object spreadsheet2:
         row <- (minRow to maxRow).to(LazyList)
       yield Cell(col, row, valueAt(col, row)))
 
-  final case class Range(minRow: Option[Int], maxRow: Option[Int], minCol: Option[Int], maxCol: Option[Int])
+  final case class Range(
+    minRow: Option[Int],
+    maxRow: Option[Int],
+    minCol: Option[Int],
+    maxCol: Option[Int]
+  )
   object Range:
     def column(i: Int): Range = Range(None, None, Some(i), Some(i))
 
@@ -248,26 +262,27 @@ object spreadsheet2:
 
   final case class Cell(col: Int, row: Int, contents: CalculatedValue)
 
-  sealed trait Value
-  object Value:
-    final case class Error(message: String) extends Value
-    final case class Str(value: String)     extends Value
-    final case class Dbl(value: Double)     extends Value
+  enum Value:
+    case Error(message: String)
+    case Str(value: String)
+    case Dbl(value: Double)
 
-  sealed trait CalculatedValue:
-    self =>
+  enum CalculatedValue:
+    case Dummy
+
+    def self = this
 
     /** EXERCISE 1
       *
-      * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For example, one operator
-      * could "negate" a double CalculatedValue.
+      * Add some operators to transform one `CalculatedValue` into another `CalculatedValue`. For
+      * example, one operator could "negate" a double CalculatedValue.
       */
     def negate: CalculatedValue = ???
 
     /** EXERCISE 2
       *
-      * Add some operators to combine `CalculatedValue`. For example, one operator could sum two double
-      * CalculatedValueessions.
+      * Add some operators to combine `CalculatedValue`. For example, one operator could sum two
+      * double CalculatedValueessions.
       */
     def sum(that: CalculatedValue): CalculatedValue = ???
   object CalculatedValue:
@@ -280,48 +295,51 @@ object spreadsheet2:
 
     /** EXERCISE 4
       *
-      * Add a constructor that provides access to the value of the specified cell, identified by col/row.
+      * Add a constructor that provides access to the value of the specified cell, identified by
+      * col/row.
       */
     def at(col: Int, row: Int): CalculatedValue = ???
 
   /** EXERCISE 5
     *
-    * Implement an interpreter for the `Value.CalculatedValue` model that translates it into static cell contents by
-    * evaluating the CalculatedValueession.
+    * Implement an interpreter for the `Value.CalculatedValue` model that translates it into static
+    * cell contents by evaluating the CalculatedValueession.
     */
   def evaluate(spreadsheet: Spreadsheet, cell: Cell): Value = ???
 end spreadsheet2
 
 /** E-COMMERCE MARKETING - GRADUATION PROJECT
   *
-  * Consider an e-commerce marketing platform where emails are sent to users whose history matches specific patterns
-  * (for example, an event of adding a product to a shopping card, followed by an abandonment of the web session).
+  * Consider an e-commerce marketing platform where emails are sent to users whose history matches
+  * specific patterns (for example, an event of adding a product to a shopping card, followed by an
+  * abandonment of the web session).
   */
 object ecommerce_marketing:
   type Event = Map[Attribute, Value]
 
-  sealed trait Attribute
-  object Attribute:
-    case object EventType      extends Attribute:
-      val AddItem    = "add_item"
-      val RemoveItem = "remove_item"
-      val Abandon    = "abandon"
-    case object UserName       extends Attribute
-    case object ShoppingCartId extends Attribute
-    case object Email          extends Attribute
-    case object WebSession     extends Attribute
-    case object DateTime       extends Attribute
+  enum Attribute:
+    case EventType
+    case UserName
+    case ShoppingCartId
+    case Email
+    case WebSession
+    case DateTime
 
-  sealed trait Value
-  object Value:
-    final case class Str(value: String)                        extends Value
-    final case class Id(value: String)                         extends Value
-    final case class Email(value: String)                      extends Value
-    final case class DateTime(value: java.time.OffsetDateTime) extends Value
+  enum Value:
+    case Str(value: String)
+    case Id(value: String)
+    case Email(value: String)
+    case DateTime(value: java.time.OffsetDateTime)
 
   object abstract_encoding:
-    sealed trait HistoryPattern:
-      self =>
+    enum HistoryPattern:
+      case Matches
+      case EventP(eventPattern: EventPattern)
+      case Sequence(first: HistoryPattern, second: HistoryPattern)
+      case Repeat(pattern: HistoryPattern, min: Option[Int], max: Option[Int])
+
+      def self = this
+
       def *>(that: HistoryPattern): HistoryPattern = HistoryPattern.Sequence(self, that)
 
       def atLeast(n: Int): HistoryPattern = repeat(Some(n), None)
@@ -330,12 +348,9 @@ object ecommerce_marketing:
 
       def between(min: Int, max: Int): HistoryPattern = repeat(Some(min), Some(max))
 
-      def repeat(min: Option[Int], max: Option[Int]): HistoryPattern = HistoryPattern.Repeat(self, min, max)
+      def repeat(min: Option[Int], max: Option[Int]): HistoryPattern =
+        HistoryPattern.Repeat(self, min, max)
     object HistoryPattern:
-      case object Matches                                                                  extends HistoryPattern
-      final case class EventP(eventPattern: EventPattern)                                  extends HistoryPattern
-      final case class Sequence(first: HistoryPattern, second: HistoryPattern)             extends HistoryPattern
-      final case class Repeat(pattern: HistoryPattern, min: Option[Int], max: Option[Int]) extends HistoryPattern
 
       val matches: HistoryPattern = Matches
 
@@ -343,22 +358,23 @@ object ecommerce_marketing:
 
       def eventType(eventType: String): HistoryPattern =
         event(EventPattern.HasValue(Attribute.EventType, Value.Str(eventType)))
-    sealed trait EventPattern:
-      self =>
+    enum EventPattern:
+      case Matches
+      case HasValue(attr: Attribute, value: Value)
+
+      def self = this
+
       import EventPattern.*
 
       def matches(event: Event): Boolean =
         self match
           case Matches               => true
           case HasValue(attr, value) => event.get(attr) == Some(value)
-    object EventPattern:
-      case object Matches                                      extends EventPattern
-      final case class HasValue(attr: Attribute, value: Value) extends EventPattern
 
     import HistoryPattern.*
     import Attribute.EventType
 
-    val example = eventType(EventType.AddItem) *> eventType(EventType.Abandon)
+    val example = eventType("add-item") *> eventType("abandon-cart")
 
     def matches(history: List[Event], pattern: HistoryPattern): Boolean =
       def loop(history: List[Event], pattern: HistoryPattern): (List[Event], Boolean) =
@@ -391,9 +407,10 @@ object ecommerce_marketing:
 
   /** EXERCISE 1
     *
-    * Develop an executable encoding of the pattern matcher. Instead of having an ADT to represent a pattern, and then
-    * interpreting that on a user history to see if there is a match, you will represent a pattern as a function or an
-    * interface that is capable of testing the user history for a match.
+    * Develop an executable encoding of the pattern matcher. Instead of having an ADT to represent a
+    * pattern, and then interpreting that on a user history to see if there is a match, you will
+    * represent a pattern as a function or an interface that is capable of testing the user history
+    * for a match.
     */
   object executable_encoding:
     type HistoryPattern
