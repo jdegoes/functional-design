@@ -205,8 +205,25 @@ object stack:
 
     def add[T2 <: Tuple](using T <:< Int *: Int *: T2): StackVM[Int *: T2] = Add(self)
 
+    def run: T =
+      def loop(op: StackVM[_], stack: Tuple): Tuple =
+        op match
+          case Empty             => stack
+          case Push(value, prev) => loop(prev, value *: stack)
+          case Add(prev)         =>
+            loop(prev, stack) match
+              case x1 *: x2 *: xs =>
+                (x1.asInstanceOf[Int] + x2.asInstanceOf[Int]) *: xs
+
+              case xs => throw new IllegalStateException(s"Uh oh: ${xs}")
+
+      loop(self, EmptyTuple).asInstanceOf[T]
+  end StackVM
+
   def empty: StackVM[EmptyTuple] = StackVM.Empty
 
-  empty.push(1).push(2).add
+  @main
+  def example =
+    println(empty.push(1).push(2).add.run)
 
 end stack
