@@ -57,14 +57,14 @@ object executable_typed:
       * Add an operator that returns a new `CalculatedValue` that is the negated version of this
       * one.
       */
-    def unary_-[A1 >: A](implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def unary_-[A1 >: A](using Numeric[A1]): CalculatedValue[A1] = ???
 
     /** EXERCISE 3
       *
       * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
       * calculated values.
       */
-    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+    def +[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
       ???
 
     /** EXERCISE 4
@@ -72,7 +72,7 @@ object executable_typed:
       * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
       * two calculated values.
       */
-    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+    def -[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
       ???
 
     protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(
@@ -148,14 +148,14 @@ object declarative_typed:
       * Add an operator that returns a new `CalculatedValue` that is the negated version of this
       * one.
       */
-    def unary_-[A1 >: A](implicit numeric: Numeric[A1]): CalculatedValue[A1] = ???
+    def unary_-[A1 >: A](using Numeric[A1]): CalculatedValue[A1] = ???
 
     /** EXERCISE 3
       *
       * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
       * calculated values.
       */
-    def +[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+    def +[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
       ???
 
     /** EXERCISE 4
@@ -163,7 +163,7 @@ object declarative_typed:
       * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
       * two calculated values.
       */
-    def -[A1 >: A](that: CalculatedValue[A1])(implicit numeric: Numeric[A1]): CalculatedValue[A1] =
+    def -[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
       ???
 
     protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(

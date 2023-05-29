@@ -328,7 +328,7 @@ object loyalty_program:
     def +(that: Amount[Currency]): Amount[Currency] =
       copy(value = value + that.value)
   object Amount:
-    implicit def AmountNumeric[Currency]: Numeric[Amount[Currency]] = ???
+    given [Currency]: Numeric[Amount[Currency]] = ???
 
   type FiscalAmount  = Amount[FiscalCurrency]
   type LoyaltyAmount = Amount[LoyaltyCurrency]
@@ -421,7 +421,7 @@ object loyalty_program:
       * produce booleans, and which models the boolean conjunction ("and") of the two boolean
       * values.
       */
-    def &&(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
+    def &&(that: RuleCalculation[Boolean])(using A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.widen[Boolean]
 
@@ -433,7 +433,7 @@ object loyalty_program:
       * Add an operator `||` that applies only with this calculation and the other calculation
       * produce booleans, and which models the boolean disjunction ("or") of the two boolean values.
       */
-    def ||(that: RuleCalculation[Boolean])(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
+    def ||(that: RuleCalculation[Boolean])(using A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.widen[Boolean]
 
@@ -446,7 +446,7 @@ object loyalty_program:
       * Add an operator `negate` that applies only with this calculation produces a boolean, and
       * which models the boolean negation of this value.
       */
-    def unary_!(implicit ev: A <:< Boolean): RuleCalculation[Boolean] =
+    def unary_!(using A <:< Boolean): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Boolean:
       val self1: RuleCalculation[Boolean] = self.widen[Boolean]
 
@@ -460,8 +460,8 @@ object loyalty_program:
       * produce amounts, and which models the `>` comparison between the two amounts, which yields a
       * boolean indicating if the relation holds.
       */
-    def >[Currency: Numeric](that: RuleCalculation[Currency])(implicit
-      ev: A <:< Currency
+    def >[Currency: Numeric](that: RuleCalculation[Currency])(using
+      A <:< Currency
     ): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
@@ -478,7 +478,7 @@ object loyalty_program:
       */
     def >=[Currency: Numeric](
       that: RuleCalculation[Currency]
-    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    )(using A <:< Currency): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
 
@@ -492,8 +492,8 @@ object loyalty_program:
       * produce amounts, and which models the `<` comparison between the two amounts, which yields a
       * boolean indicating if the relation holds.
       */
-    def <[Currency: Numeric](that: RuleCalculation[Currency])(implicit
-      ev: A <:< Currency
+    def <[Currency: Numeric](that: RuleCalculation[Currency])(using
+      A <:< Currency
     ): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
@@ -510,7 +510,7 @@ object loyalty_program:
       */
     def <=[Currency: Numeric](
       that: RuleCalculation[Currency]
-    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    )(using A <:< Currency): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
 
@@ -525,7 +525,7 @@ object loyalty_program:
       */
     def ===[Currency: Numeric](
       that: RuleCalculation[Currency]
-    )(implicit ev: A <:< Currency): RuleCalculation[Boolean] =
+    )(using A <:< Currency): RuleCalculation[Boolean] =
       // This line of code "proves" that the "A" type is actually a Currency:
       val self1: RuleCalculation[Currency] = self.widen[Currency]
 

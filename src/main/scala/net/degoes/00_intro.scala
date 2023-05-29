@@ -15,7 +15,7 @@ import zio.*
  * type safety afforded by functional programming, and applies it to solve
  * real world problems, some of which may be close to business domains, all
  * without the esoteric type classes, category theory jargon, confusing and
- * undiscoverable implicits, monad transformers, and other constructs common
+ * undiscoverable givens, monad transformers, and other constructs common
  * in the early days of functional Scala.
  *
  * Functional Design has been used for a number of open source Scala libraries,
@@ -126,7 +126,7 @@ object tour:
 
       def +[E1 >: E, B](
         that: => Parser[E1, B]
-      )(implicit ev1: StringLike[A], ev2: StringLike[B]): Parser[E1, String] =
+      )(using StringLike[A], StringLike[B]): Parser[E1, String] =
         self.string.zipWith(that.string)(_ + _)
 
       def ~[E1 >: E, B](that: => Parser[E1, B]): Parser[E1, (A, B)] = self.zip(that)
@@ -162,8 +162,8 @@ object tour:
           _ <- if f(a) then Parser.succeed(()) else Parser.fail(e)
         yield a
 
-      def string(implicit ev: StringLike[A]): Parser[E, String] =
-        self.map(ev).map(_.toString)
+      def string(using StringLike[A]): Parser[E, String] =
+        self.map(_.makeString).map(_.toString)
     end Parser
     object Parser:
       def succeed[A](a: => A): Parser[Nothing, A] = Parser(input => Right(input -> a))
@@ -191,13 +191,14 @@ object tour:
 
     trait StringLike[-A] extends (A => String):
       final def apply(a: A): String = makeString(a)
-      def makeString(a: A): String
+
+      extension (a: A) def makeString: String
     object StringLike:
-      implicit val stringLikeChar: StringLike[Char] = _.toString
+      given StringLike[Char] = _.toString
 
-      implicit def stringLikeVector[A](implicit sl: StringLike[A]): StringLike[Vector[A]] =
-        (vector: Vector[A]) => vector.map(sl.makeString(_)).mkString("")
+      given [A: StringLike]: StringLike[Vector[A]] =
+        (vector: Vector[A]) => vector.map(_.makeString).mkString("")
 
-      implicit val stringLikeString: StringLike[String] = identity[String](_)
+      given StringLike[String] = identity[String](_)
   end parsers
 end tour
