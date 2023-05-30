@@ -1,6 +1,7 @@
 package net.degoes
 
 import java.time.Instant
+import java.net.URL
 
 /*
  * INTRODUCTION
@@ -25,7 +26,48 @@ object credit_card:
     *
     * * Number * Name * Expiration date * Security code
     */
-  type CreditCard
+  final case class CreditCard(
+    number: CreditCardNumber, 
+    name: Name, 
+    expirationDate: java.time.YearMonth, 
+    securityCode: SecurityCode)
+
+  final case class Name(value: RangedVector[NameChar, 1, 255])
+
+  enum NameChar:
+    case A 
+    case B 
+
+  final case class CreditCardNumber(value: RangedVector[Digit, 12, 16])
+
+  final case class SecurityCode(value: RangedVector[Digit, 3, 4])
+
+  trait RangedVector[A, Min <: Int, Max <: Int]
+
+  enum Digit: 
+    case Zero extends Digit
+    case One extends Digit
+    case Two extends Digit
+    case Three extends Digit
+    case Four extends Digit
+    case Five extends Digit
+    case Six extends Digit
+    case Seven extends Digit
+    case Eight extends Digit
+    case Nine extends Digit
+
+  enum CreditCardType:
+    case Visa
+    case Mastercard
+    case Amex
+    case Discover
+
+  enum Amount:
+    case USD(value: BigDecimal)
+    case EUR(value: BigDecimal)
+    case GBP(value: BigDecimal)
+
+  Amount.USD(BigDecimal(1))
 
   /** EXERCISE 2
     *
@@ -33,14 +75,27 @@ object credit_card:
     * a physical product, such as a gallon of milk, or a digital product, such as a book or movie,
     * or access to an event, such as a music concert or film showing.
     */
-  type Product
+  enum Good:
+    case Physical(name: String, price: Amount, weight: Weight, dimensions: Dimensions)
+    case Digital(name: String, price: Amount)
+    case Event(name: String, price: Amount, start: java.time.LocalDate, end: java.time.LocalDate, location: Location)
+
+  final case class Weight()
+  final case class Dimensions()
+  final case class Address()
+
+  enum Location:
+    case Online(url: URL)
+    case Physical(address: Address)
 
   /** EXERCISE 3
     *
     * Using only enums and case classes, create an immutable data model of a product price, which
     * could be one-time purchase fee, or a recurring fee on some regular interval.
     */
-  type PricingScheme
+  enum PricingSchema:
+    case OneTime(value: Amount)
+    case Recurring(value: Amount, interval: java.time.Period)
 end credit_card
 
 /** EVENT PROCESSING - EXERCISE SET 3
@@ -55,40 +110,28 @@ object events:
     * Refactor the object-oriented data model in this section to a more functional one, which uses
     * only enums and case classes.
     */
-  abstract class Event(val id: Int):
+  final case class Event(id: Int, time: Instant, payload: Payload)
 
+  enum Payload:
+    case User(userName: String, payload: UserPayload)
+    case Device(deviceId: Int, payload: DevicePayload)
+
+  enum UserPayload:
+    case Purchase(item: String, price: Double)
+    case AccountCreated
+
+  enum DevicePayload:
+    case SensorUpdated(reading: Option[Double])
+    case DeviceActivated
+
+  enum Event2:
+    case UserPurchase(id: Int, time: Instant, userName: String, item: String, price: Double)
+    case UserAccountCreated(id: Int, time: Instant, userName: String)
+    case DeviceSensorUpdated(id: Int, time: Instant, deviceId: Int, reading: Option[Double])
+    case DeviceActivated(id: Int, time: Instant, deviceId: Int)
+
+    def id: Int 
     def time: Instant
-
-  // Events are either UserEvent (produced by a user) or DeviceEvent (produced by a device),
-  // please don't extend both it will break code!!!
-  trait UserEvent extends Event:
-    def userName: String
-
-  // Events are either UserEvent (produced by a user) or DeviceEvent (produced by a device),
-  // please don't extend both it will break code!!!
-  trait DeviceEvent extends Event:
-    def deviceId: Int
-
-  class SensorUpdated(id: Int, val deviceId: Int, val time: Instant, val reading: Option[Double])
-      extends Event(id)
-      with DeviceEvent
-
-  class DeviceActivated(id: Int, val deviceId: Int, val time: Instant)
-      extends Event(id)
-      with DeviceEvent
-
-  class UserPurchase(
-    id: Int,
-    val item: String,
-    val price: Double,
-    val time: Instant,
-    val userName: String
-  ) extends Event(id)
-      with UserEvent
-
-  class UserAccountCreated(id: Int, val userName: String, val time: Instant)
-      extends Event(id)
-      with UserEvent
 end events
 
 /** DOCUMENT EDITING - EXERCISE SET 4
@@ -106,7 +149,7 @@ object documents:
     * Using only enums and case classes, create a simplified but somewhat realistic model of a
     * Document.
     */
-  type Document
+  case class Document(owner: UserId, id: DocId, content: DocContent)
 
   /** EXERCISE 2
     *
@@ -114,14 +157,19 @@ object documents:
     * have with respect to a document. For example, some users might have read-only permission on a
     * document.
     */
-  type AccessType
+  enum AccessType:
+    case None
+    case ReadOnly
+    case ReadWrite
+    case Admin
 
   /** EXERCISE 3
     *
     * Using only enums and case classes, create a model of the permissions that a user has on a set
     * of documents they have access to. Do not store the document contents themselves in this model.
     */
-  type DocPermissions
+  case class DocPermissions(lookup: Map[DocId, AccessType]):
+    def apply(docId: DocId): AccessType = lookup.getOrElse(docId, AccessType.None)
 end documents
 
 /** BANKING - EXERCISE SET 5

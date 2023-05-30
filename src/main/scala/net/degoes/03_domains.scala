@@ -55,7 +55,7 @@ object spreadsheet:
     * Design a data type called `CalculatedValue`, which represents a `Value` that is dynamically
     * computed from a `Spreadsheet`.
     */
-  final case class CalculatedValue( /* ??? */ ):
+  final case class CalculatedValue(eval: Spreadsheet => Value):
     self =>
 
     /** EXERCISE 2
@@ -63,25 +63,46 @@ object spreadsheet:
       * Add an operator that returns a new `CalculatedValue` that is the negated version of this
       * one.
       */
-    def unary_- : CalculatedValue = ???
+    def unary_- : CalculatedValue = 
+      CalculatedValue: spreadsheet => 
+        self.eval(spreadsheet) match 
+          case Value.Dbl(value) => Value.Dbl(-value)
+          case Value.Error(message) => Value.Error(message)
+          case _ => Value.Error("Cannot negate non-numeric value")
 
     /** EXERCISE 3
       *
       * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
       * calculated values.
       */
-    def +(that: CalculatedValue): CalculatedValue = ???
+    def +(that: CalculatedValue): CalculatedValue = 
+      binaryOp(that)("Cannot add non-numeric values"):
+        case (Value.Dbl(left), Value.Dbl(right)) => Value.Dbl(left + right)
 
     /** EXERCISE 4
       *
       * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
       * two calculated values.
       */
-    def -(that: CalculatedValue): CalculatedValue = ???
+    def -(that: CalculatedValue): CalculatedValue = 
+      binaryOp(that)("Cannot subtract non-numeric values"):
+        case (Value.Dbl(left), Value.Dbl(right)) => Value.Dbl(left - right)
+
+    def *(that: CalculatedValue): CalculatedValue = 
+      binaryOp(that)("Cannot multiply non-numeric values"):
+        case (Value.Dbl(left), Value.Dbl(right)) => Value.Dbl(left * right)
+
+    def concat(that: CalculatedValue): CalculatedValue = 
+      binaryOp(that)("Cannot concatenate non-string values"):
+        case (Value.Str(left), Value.Str(right)) => Value.Str(left + right)
 
     protected def binaryOp(that: CalculatedValue)(error: String)(
       f: PartialFunction[(Value, Value), Value]
-    ): CalculatedValue = ???
+    ): CalculatedValue = 
+      CalculatedValue: spreadsheet => 
+        val left = self.eval(spreadsheet)
+        val right = that.eval(spreadsheet)
+        f.lift((left, right)).getOrElse(Value.Error(error))
   end CalculatedValue
   object CalculatedValue:
 
