@@ -49,54 +49,55 @@ object email_filter3:
     * one primitive.
     */
   enum EmailFilter:
-    case Always
-    case Never
     case And(left: EmailFilter, right: EmailFilter)
-    case InclusiveOr(left: EmailFilter, right: EmailFilter)
-    case ExclusiveOr(left: EmailFilter, right: EmailFilter)
+    case Not(value: EmailFilter)
     case SenderEquals(target: Address)
-    case SenderNotEquals(target: Address)
     case RecipientEquals(target: Address)
-    case RecipientNotEquals(target: Address)
-    case SenderIn(targets: Set[Address])
-    case RecipientIn(targets: Set[Address])
     case BodyContains(phrase: String)
-    case BodyNotContains(phrase: String)
     case SubjectContains(phrase: String)
-    case SubjectNotContains(phrase: String)
 
     def self = this
 
     def &&(that: EmailFilter): EmailFilter = EmailFilter.And(self, that)
 
-    def ||(that: EmailFilter): EmailFilter = EmailFilter.InclusiveOr(self, that)
+    def ||(that: EmailFilter): EmailFilter = !(!self && !that)
 
-    def ^^(that: EmailFilter): EmailFilter = EmailFilter.ExclusiveOr(self, that)
+    def ^^(that: EmailFilter): EmailFilter = (self && !that) || (!self && that)
+
+    def unary_! : EmailFilter = EmailFilter.Not(self)
   end EmailFilter
   object EmailFilter:
-    val always: EmailFilter = Always
+    object Or:
+      //  !(!self && !that)
+      def unapply(arg: EmailFilter): Option[(EmailFilter, EmailFilter)] = arg match
+        case Not(And(Not(left), Not(right))) => Some((left, right))
+        case _ => None
+        
+    val always: EmailFilter = !never
 
-    val never: EmailFilter = Always
+    val never: EmailFilter = bodyContains("") && !bodyContains("")
 
     def senderIs(sender: Address): EmailFilter = SenderEquals(sender)
 
-    def senderIsNot(sender: Address): EmailFilter = SenderNotEquals(sender)
+    def senderIsNot(sender: Address): EmailFilter = !senderIs(sender)
 
     def recipientIs(recipient: Address): EmailFilter = RecipientEquals(recipient)
 
-    def recipientIsNot(recipient: Address): EmailFilter = RecipientNotEquals(recipient)
+    def recipientIsNot(recipient: Address): EmailFilter = !recipientIs(recipient)
 
-    def senderIn(senders: Set[Address]): EmailFilter = SenderIn(senders)
+    def senderIn(senders: Set[Address]): EmailFilter = 
+      senders.foldLeft(never)(_ || senderIs(_))
 
-    def recipientIn(recipients: Set[Address]): EmailFilter = RecipientIn(recipients)
+    def recipientIn(recipients: Set[Address]): EmailFilter = 
+      recipients.foldLeft(never)(_ || recipientIs(_))
 
     def bodyContains(phrase: String): EmailFilter = BodyContains(phrase)
 
-    def bodyDoesNotContain(phrase: String): EmailFilter = BodyNotContains(phrase)
+    def bodyDoesNotContain(phrase: String): EmailFilter = !bodyContains(phrase)
 
     def subjectContains(phrase: String): EmailFilter = SubjectContains(phrase)
 
-    def subjectDoesNotContain(phrase: String): EmailFilter = SubjectNotContains(phrase)
+    def subjectDoesNotContain(phrase: String): EmailFilter = !subjectContains(phrase)
   end EmailFilter
 end email_filter3
 

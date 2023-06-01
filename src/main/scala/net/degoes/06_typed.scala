@@ -294,3 +294,33 @@ object parser:
           .map:
             case (input, as) => (input, as.reverse)
 end parser
+
+object declarative_parser:
+  enum Parser[+A]:
+    case Consume extends Parser[Char]
+    case Succeed(value: A)
+    case Fail(error: String)
+    case Attempt(value: Parser[A]) extends Parser[Either[String, A]]
+    case Sequence[A, B](left: Parser[A], andThen: A => Parser[B]) extends Parser[B]
+
+    def self = this 
+
+    def attempt: Parser[Either[String, A]] = Attempt(self)
+
+    def map[B](f: A => B): Parser[B] = Sequence(self, (a: A) => Succeed(f(a)))
+
+    def flatMap[B](f: A => Parser[B]): Parser[B] = Sequence(self, f)
+
+    def | [A1 >: A](that: => Parser[A1]): Parser[A1] = 
+      self.attempt.flatMap:
+        case Left(_) => that 
+        case Right(value) => Succeed(value)
+
+    def ~ [B](that: Parser[B]): Parser[(A, B)] = self.flatMap(a => that.map(b => (a, b)))
+
+    def ~> [B](that: Parser[B]): Parser[B] = (self ~ that).map(_._2)
+
+    def <~ [B](that: Parser[B]): Parser[A] = (self ~ that).map(_._1)
+
+  val never = Parser.Fail("Uh oh!")
+    
