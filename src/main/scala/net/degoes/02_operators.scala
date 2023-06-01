@@ -313,7 +313,7 @@ object contact_processing:
         case (_, Failure(errors))                                     => Failure(errors)
 
     def zipWith[B, C](that: MappingResult[B])(f: (A, B) => C): MappingResult[C] =
-      (self zip that).map(f.tupled)
+      (self `zip` that).map(f.tupled)
   end MappingResult
 
   object MappingResult:

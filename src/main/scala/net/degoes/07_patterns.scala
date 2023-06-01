@@ -206,7 +206,7 @@ object stack:
     def add[T2 <: Tuple](using T <:< Int *: Int *: T2): StackVM[Int *: T2] = Add(self)
 
     def run: T =
-      def loop(op: StackVM[_], stack: Tuple): Tuple =
+      def loop(op: StackVM[?], stack: Tuple): Tuple =
         op match
           case Empty             => stack
           case Push(value, prev) => loop(prev, value *: stack)

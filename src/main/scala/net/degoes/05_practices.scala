@@ -1,5 +1,7 @@
 package net.degoes
 
+import scala.annotation.tailrec
+
 /*
  * INTRODUCTION
  *
@@ -49,6 +51,7 @@ object email_filter3:
     * one primitive.
     */
   enum EmailFilter:
+    case Const(value: Boolean)
     case And(left: EmailFilter, right: EmailFilter)
     case Not(value: EmailFilter)
     case SenderEquals(target: Address)
@@ -72,10 +75,10 @@ object email_filter3:
       def unapply(arg: EmailFilter): Option[(EmailFilter, EmailFilter)] = arg match
         case Not(And(Not(left), Not(right))) => Some((left, right))
         case _ => None
-        
-    val always: EmailFilter = !never
 
-    val never: EmailFilter = bodyContains("") && !bodyContains("")
+    val always: EmailFilter = Const(true)
+
+    val never: EmailFilter = Const(false)
 
     def senderIs(sender: Address): EmailFilter = SenderEquals(sender)
 
@@ -99,11 +102,77 @@ object email_filter3:
 
     def subjectDoesNotContain(phrase: String): EmailFilter = !subjectContains(phrase)
   end EmailFilter
+
+
+  enum MatchTodo:
+    case And(right: EmailFilter) 
+    case Not 
+
+  extension (filter: EmailFilter) def matches(email: Email): Boolean = 
+    @tailrec
+    def loop(filter: EmailFilter, todo: List[MatchTodo]): Boolean = 
+      inline def continue(inline bool: Boolean) = loop(EmailFilter.Const(bool), todo)
+
+      filter match
+        case EmailFilter.Const(value) => 
+          todo match 
+            case Nil => value
+            case MatchTodo.Not :: todo => loop(EmailFilter.Const(!value), todo)
+
+            case MatchTodo.And(right) :: tail => 
+              if value then loop(right, tail)
+              else loop(EmailFilter.Const(false), tail)
+
+        case EmailFilter.And(left, right) => 
+          loop(left, MatchTodo.And(right) :: todo)
+
+        case EmailFilter.Not(value) => 
+          loop(value, MatchTodo.Not :: todo)
+
+        case EmailFilter.SenderEquals(target) => 
+          continue(email.sender == target)
+
+        case EmailFilter.RecipientEquals(target) => 
+          continue(email.to.contains(target))
+
+        case EmailFilter.BodyContains(phrase) => 
+          continue(email.body.contains(phrase))
+
+        case EmailFilter.SubjectContains(phrase) => 
+          continue(email.subject.contains(phrase))
+
+    loop(filter, Nil)
+
+  lazy val emailFilter1 = 
+    EmailFilter.subjectContains("discount") && 
+    EmailFilter.bodyContains("N95") && 
+    !EmailFilter.recipientIs(Address("john@doe.com"))
+
+  @main
+  def test3 = 
+    println(emailFilter1.matches(Email(Address("john@doe.com"), Address("john@doe.com") :: Nil, "discount", "N95")))
+
 end email_filter3
 
 /** COMPOSABILITY - EXERCISE SET 2
   */
 object ui_components:
+  trait Turtle:
+    self =>
+    def turnLeft(degrees: Int): Unit
+
+    def turnRight(degrees: Int): Unit
+
+    def goForward(): Unit
+
+    def goBackward(): Unit
+
+    def draw(): Unit
+
+  abstract class BitmapTurtle(width: Int, height: Int) extends Turtle:
+    def bitmap: Array[Array[Boolean]] = ???
+
+  def createTurtle(width: Int, height: Int): BitmapTurtle = ??? 
 
   object executable:
     /** EXERCISE 1
@@ -111,33 +180,83 @@ object ui_components:
       * The following API is not composable—there is no domain. Introduce a domain with elements,
       * constructors, and composable operators. Use an executable model.
       */
-    trait Turtle:
+    final case class TurtleTodo(draw: Turtle => Unit):
       self =>
-      def turnLeft(degrees: Int): Unit
+      def + (that: TurtleTodo): TurtleTodo = 
+        TurtleTodo: turtle => 
+          self.draw(turtle)
+          that.draw(turtle)
 
-      def turnRight(degrees: Int): Unit
+      def turnRight(degrees: Int): TurtleTodo = self + TurtleTodo.turnRight(degrees)
 
-      def goForward(): Unit
+      def turnLeft(degrees: Int): TurtleTodo = self + TurtleTodo.turnLeft(degrees)
 
-      def goBackward(): Unit
+      def goForward: TurtleTodo = self + TurtleTodo.goForward
 
-      def draw(): Unit
+      def goBackward: TurtleTodo = self + TurtleTodo.goBackward
+
+    object TurtleTodo: 
+      val empty: TurtleTodo = TurtleTodo(_ => ())
+
+      def turnRight(degrees: Int): TurtleTodo = TurtleTodo(_.turnRight(degrees))
+
+      def turnLeft(degrees: Int): TurtleTodo = TurtleTodo(_.turnLeft(degrees))
+
+      def goForward: TurtleTodo = TurtleTodo(_.goForward())
+
+      def goBackward: TurtleTodo = TurtleTodo(_.goBackward())
+
+      def draw: TurtleTodo = TurtleTodo(_.draw())
 
   object declarative:
+    /*
+    enum TurtleStep:
+      case TurnRight
+      case GoForward
+      case Draw
+      case Sequence(left: TurtleStep, right: TurtleStep)
+
+    def empty = AndThen(GoForward, GoBackward)
+    */
+
     /** EXERCISE 2
       *
       * The following API is not composable—there is no domain. Introduce a domain with elements,
       * constructors, and composable operators. Use a declarative model.
       */
-    trait Turtle:
+    enum TurtleStep:
+      case TurnRight
+      case GoForward
+      case Draw
+
+    final case class TurtleTodo(steps: Vector[TurtleStep]):
       self =>
-      def turnLeft(degrees: Int): Unit
+      def + (that: TurtleTodo): TurtleTodo = TurtleTodo(self.steps ++ that.steps)
 
-      def turnRight(degrees: Int): Unit
+      def turnRight(degrees: Int): TurtleTodo = self + TurtleTodo.turnRight(degrees)
 
-      def goForward(): Unit
+      def turnLeft(degrees: Int): TurtleTodo = self + TurtleTodo.turnLeft(degrees)
 
-      def goBackward(): Unit
+      def goForward: TurtleTodo = self + TurtleTodo.goForward
 
-      def draw(): Unit
+      def goBackward: TurtleTodo = self + TurtleTodo.goBackward
+
+      def draw: TurtleTodo = self + TurtleTodo.draw
+    object TurtleTodo:
+      def empty = TurtleTodo(Vector.empty)
+
+      def turnRight(degrees: Int): TurtleTodo = 
+        (0 until degrees).foldLeft(empty)((acc, _) => acc + TurtleTodo(Vector(TurtleStep.TurnRight)))
+
+      def turnLeft(degrees: Int): TurtleTodo = 
+        turnRight(360 - degrees)
+
+      def goForward: TurtleTodo = TurtleTodo(Vector(TurtleStep.GoForward))
+
+      def goBackward: TurtleTodo = 
+        turnLeft(180) + goForward + turnLeft(180)
+
+      def draw: TurtleTodo = TurtleTodo(Vector(TurtleStep.Draw))
+
+
 end ui_components

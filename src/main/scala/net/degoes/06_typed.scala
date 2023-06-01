@@ -49,7 +49,7 @@ object executable_typed:
     * Design a data type called `CalculatedValue[A]`, whose type parameter `A` represents the type
     * of value dynamically computed from the spreadsheet.
     */
-  final case class CalculatedValue[+A]( /* ??? */ ):
+  final case class CalculatedValue[+A](eval: Spreadsheet => Either[String, A]):
     self =>
 
     /** EXERCISE 2
@@ -57,27 +57,34 @@ object executable_typed:
       * Add an operator that returns a new `CalculatedValue` that is the negated version of this
       * one.
       */
-    def unary_-[A1 >: A](using Numeric[A1]): CalculatedValue[A1] = ???
+    def unary_-[A1 >: A](using n: Numeric[A1]): CalculatedValue[A1] = 
+      CalculatedValue(s => eval(s).map(n.negate))
 
     /** EXERCISE 3
       *
       * Add a binary operator `+` that returns a new `CalculatedValue` that is the sum of the two
       * calculated values.
       */
-    def +[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
-      ???
+    def +[A1 >: A](that: CalculatedValue[A1])(using n: Numeric[A1]): CalculatedValue[A1] =
+      CalculatedValue(s => 
+        for 
+          a <- self.eval(s)
+          b <- that.eval(s)
+        yield n.plus(a, b)
+      )
 
     /** EXERCISE 4
       *
       * Add a binary operator `-` that returns a new `CalculatedValue` that is the difference of the
       * two calculated values.
       */
-    def -[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
-      ???
-
-    protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(
-      f: PartialFunction[(A1, A1), A1]
-    ): CalculatedValue[A1] = ???
+    def -[A1 >: A](that: CalculatedValue[A1])(using n: Numeric[A1]): CalculatedValue[A1] =
+      CalculatedValue(s => 
+        for 
+          a <- self.eval(s)
+          b <- that.eval(s)
+        yield n.minus(a, b)
+      )
   end CalculatedValue
   object CalculatedValue:
 
@@ -85,14 +92,18 @@ object executable_typed:
       *
       * Add a constructor that makes an `CalculatedValue` from a `Value`.
       */
-    def const[Value](contents: Value): CalculatedValue[Value] = ???
+    def const[Value](contents: Value): CalculatedValue[Value] = 
+      CalculatedValue(_ => Right(contents))
 
     /** EXERCISE 6
       *
       * Add a constructor that provides access to the value of the specified cell, identified by
       * col/row.
       */
-    def at(col: Int, row: Int): CalculatedValue[Any] = ???
+    def at(col: Int, row: Int): CalculatedValue[Any] = 
+      CalculatedValue(s => 
+        s.valueAt(col, row).eval(s)
+      )
 end executable_typed
 
 /** EXECUTABLE - EXERCISE SET 2
@@ -140,6 +151,10 @@ object declarative_typed:
   enum CalculatedValue[+A]:
     case Integer(value: Int) extends CalculatedValue[Int]
     case Str(value: String)  extends CalculatedValue[String]
+    case Negate(value: CalculatedValue[A])(using Numeric[A]) extends CalculatedValue[A]
+    case Add(left: CalculatedValue[A], right: CalculatedValue[A])(using Numeric[A]) extends CalculatedValue[A]
+    case Subtract(left: CalculatedValue[A], right: CalculatedValue[A])(using Numeric[A]) extends CalculatedValue[A]
+    case At(col: Int, row: Int) extends CalculatedValue[Any]
 
     def self = this
 
@@ -148,7 +163,8 @@ object declarative_typed:
       * Add an operator that returns a new `CalculatedValue` that is the negated version of this
       * one.
       */
-    def unary_-[A1 >: A](using Numeric[A1]): CalculatedValue[A1] = ???
+    def unary_-[A1 >: A](using Numeric[A1]): CalculatedValue[A1] = 
+      Negate(self: CalculatedValue[A1])
 
     /** EXERCISE 3
       *
@@ -156,7 +172,7 @@ object declarative_typed:
       * calculated values.
       */
     def +[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
-      ???
+      Add(self, that)
 
     /** EXERCISE 4
       *
@@ -164,11 +180,7 @@ object declarative_typed:
       * two calculated values.
       */
     def -[A1 >: A](that: CalculatedValue[A1])(using Numeric[A1]): CalculatedValue[A1] =
-      ???
-
-    protected def binaryOp[A1 >: A](that: CalculatedValue[A1])(error: String)(
-      f: PartialFunction[(A1, A1), A1]
-    ): CalculatedValue[A1] = ???
+      Subtract(self, that)
   end CalculatedValue
   object CalculatedValue:
 
@@ -176,21 +188,34 @@ object declarative_typed:
       *
       * Add a constructor that makes an `CalculatedValue` from a `Value`.
       */
-    def const[Value](contents: Value): CalculatedValue[Value] = ???
+    def const[A](contents: A)(using cv: IsCellValue[A]): CalculatedValue[A] = 
+      contents.toCalculatedValue
 
     /** EXERCISE 6
       *
       * Add a constructor that provides access to the value of the specified cell, identified by
       * col/row.
       */
-    def at(col: Int, row: Int): CalculatedValue[Any] = ???
+    def at(col: Int, row: Int): CalculatedValue[Any] = 
+      At(col, row)
 
   import CalculatedValue.*
 
-  def calculate[A](expr: CalculatedValue[A]): A =
-    expr match
-      case Integer(v) => v
-      case Str(v)     => v
+  enum IsCellValue[A]:
+    case StringIsCellValue extends IsCellValue[String]
+    case IntIsCellValue extends IsCellValue[Int]
+
+    extension (value: A) def toCalculatedValue: CalculatedValue[A] = 
+      this match
+        case StringIsCellValue => Str(value)
+        case IntIsCellValue => Integer(value)
+
+  object IsCellValue:
+    given IsCellValue[String] = StringIsCellValue
+    given IsCellValue[Int] = IntIsCellValue
+
+  def calculate[A](s: Spreadsheet, expr: CalculatedValue[A]): A =
+    ???
 end declarative_typed
 
 /** PARSERS - GRADUATION PROJECT
@@ -206,6 +231,10 @@ object parser:
     case OneChar                                                         extends Parser[Char]
     case Map[A, B](parser: Parser[A], f: A => B)                         extends Parser[B]
     case Repeat[A](value: Parser[A], min: Option[Int], max: Option[Int]) extends Parser[List[A]]
+    case Succeed(value: A)
+    case Fail(error: String)
+    case OrElse(left: Parser[A], right: Parser[A])
+    case Sequence[A, B](left: Parser[A], right: Parser[B])               extends Parser[(A, B)]
 
     def self = this
 
@@ -221,9 +250,9 @@ object parser:
 
     def <~[B](that: Parser[B]): Parser[A] = (self ~ that).map(_._1)
 
-    def ~[B](that: Parser[B]): Parser[(A, B)] = ??? // EXERCISE 3 - Parser.Sequence(self, that)
+    def ~[B](that: Parser[B]): Parser[(A, B)] = Parser.Sequence(self, that)
 
-    def |[A1 >: A](that: Parser[A1]): Parser[A1] = ??? // EXERCISE 4 - Parser.OrElse(self, that)
+    def |[A1 >: A](that: Parser[A1]): Parser[A1] = Parser.OrElse(self, that)
 
     def * : Parser[List[A]] = Parser.Repeat(self, None, None)
 
@@ -238,7 +267,7 @@ object parser:
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */
-    final case class Succeed()
+    def succeed[A](value: A): Parser[A] = Parser.Succeed(value)
 
     /** EXERCISE 2
       *
@@ -246,7 +275,7 @@ object parser:
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */
-    final case class Fail()
+    def fail(error: String): Parser[Nothing] = Parser.Fail(error)
 
     /** EXERCISE 3
       *
@@ -254,7 +283,7 @@ object parser:
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */
-    final case class OrElse()
+    def fallback[A](first: Parser[A], second: Parser[A]): Parser[A] = Parser.OrElse(first, second)
 
     /** EXERCISE 4
       *
@@ -263,20 +292,35 @@ object parser:
       *
       * NOTE: Be sure to modify the `parse` method below, so that it can handle the new operation.
       */
-    final case class Sequence[A, B]()
+    def sequence[A, B](first: Parser[A], second: Parser[B]): Parser[(A, B)] = Parser.Sequence(first, second)
   end Parser
 
   import Parser.*
 
-  def parse[A](parser: Parser[A], input: Input): Either[Error, (Input, A)] =
+  extension [A] (parser: Parser[A]) def parse(input: Input): Either[Error, (Input, A)] =
     parser match
+      case Succeed(value) => Right(input -> value)
+      
+      case Fail(message) => Left(message)
+
+      case OrElse(left, right) => 
+        left.parse(input) match
+          case Left(_) => right.parse(input)
+          case other   => other
+
+      case Sequence(left, right) => 
+        for 
+          (input, a) <- left.parse(input)
+          (input, b) <- right.parse(input)
+        yield (input, (a, b))
+
       case OneChar =>
         input.headOption
           .map((a: Char) => Right(input.drop(1) -> a))
           .getOrElse(Left("Expected a character but found an empty string"))
 
       case Map(parser, f) =>
-        parse(parser, input).map:
+        parser.parse(input).map:
           case (input, a) => (input, f(a))
 
       case repeat: Repeat[a] =>
@@ -288,7 +332,7 @@ object parser:
             case (e @ Left(_), _) => e
 
             case (Right((input, as)), _) =>
-              parse[a](repeat.value, input) match
+              repeat.value.parse(input) match
                 case Left(error)       => if as.length >= min then Right((input, as)) else Left(error)
                 case Right((input, a)) => Right((input, a :: as))
           .map:

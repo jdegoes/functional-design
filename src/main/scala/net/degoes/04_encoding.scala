@@ -142,7 +142,7 @@ object education_executable:
   enum Quiz2:
     case Sequence(left: Quiz2, right: Quiz2) 
     case ToBonus(value: Quiz2)
-    case Single(question: Question[_]) 
+    case Single(question: Question[?]) 
 
     def self = this
 
@@ -229,7 +229,7 @@ object contact_processing2:
     def toOldMapping(mapping2: SchemaMapping2): SchemaMapping = 
       mapping2 match
         case SchemaMapping2.Sequence(left, right) => toOldMapping(left) + toOldMapping(right)
-        case SchemaMapping2.Fallback(left, right) => toOldMapping(left) orElse toOldMapping(right)
+        case SchemaMapping2.Fallback(left, right) => toOldMapping(left) `orElse` toOldMapping(right)
         case SchemaMapping2.Rename(oldName, newName) => SchemaMapping.rename(oldName, newName)
         case SchemaMapping2.Delete(name) => SchemaMapping.delete(name)
 

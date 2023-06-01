@@ -66,7 +66,7 @@ object tour:
       * point the schedule will no longer recur.
       */
     val schedule =
-      (Schedule.exponential(10.millis).whileOutput(_ < 60.seconds) andThen
+      (Schedule.exponential(10.millis).whileOutput(_ < 60.seconds) `andThen`
         (Schedule.fixed(60.seconds) && Schedule.recurs(100))).jittered
 
     def flakyRequest(url: String): Task[Response] = ???
@@ -138,11 +138,11 @@ object tour:
         yield (a, b)
 
       def zipWith[E1 >: E, B, C](that: => Parser[E1, B])(f: (A, B) => C): Parser[E1, C] =
-        (self zip that).map(f.tupled)
+        (self `zip` that).map(f.tupled)
 
-      def *>[E1 >: E, B](that: => Parser[E1, B]): Parser[E1, B] = (self zip that).map(_._2)
+      def *>[E1 >: E, B](that: => Parser[E1, B]): Parser[E1, B] = (self `zip` that).map(_._2)
 
-      def <*[E1 >: E](that: => Parser[E1, Any]): Parser[E1, A] = (self zip that).map(_._1)
+      def <*[E1 >: E](that: => Parser[E1, Any]): Parser[E1, A] = (self `zip` that).map(_._1)
 
       def |[E1 >: E, A1 >: A](that: => Parser[E1, A1]): Parser[E1, A1] = self.orElse(that)
 

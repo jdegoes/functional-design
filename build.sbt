@@ -25,6 +25,7 @@ scalacOptions ++= Seq(
   , "-feature"
   , "-language:_"
   , "-Wconf:msg=a type was inferred to be `Any`:silent"
+  , "-source:future"
 )
 
 javacOptions ++= Seq("-Xlint:unchecked", "-Xlint:deprecation", "-source", "1.7", "-target", "1.7")

@@ -130,6 +130,11 @@ object spreadsheet:
     */
   lazy val cell1: Cell = 
     Cell(2, 0, CalculatedValue.at(0, 0) + CalculatedValue.at(1, 0))
+
+  @main 
+  def test4 = 
+    println((CalculatedValue.const(Value.Str("Hello")) + 
+      CalculatedValue.const(Value.Str("World"))).eval(null))
 end spreadsheet
 
 /** ETL - EXERCISE SET 2
